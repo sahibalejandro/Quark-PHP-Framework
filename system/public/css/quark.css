@@ -1,0 +1,23 @@
+/**
+ * Quark 3 PHP Framework
+ * Copyright (C) 2011 Sahib Alejandro Jaramillo Leo
+ * 
+ * Web: http://quarkphp.com
+ * License: GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ */
+
+@charset "utf-8";
+
+body{
+	border: 1px solid #DDD;
+	color: #444;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	margin: 20px;
+	padding: 5px;
+}
+
+#errors{
+	font-family: "Courier New", Courier, monospace;
+	font-size: 14px;
+}

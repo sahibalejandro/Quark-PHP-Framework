@@ -1,0 +1,63 @@
+/**
+ * Quark 3 PHP Framework
+ * Copyright (C) 2011 Sahib Alejandro Jaramillo Leo
+ * 
+ * Web: http://quarkphp.com
+ * License: GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ */
+
+@charset "utf-8";
+
+.quark-ui-dialog{
+	background: #FFF;
+	border: 1px solid #444;
+	box-shadow: 1px 1px 5px #666;
+	color: #444;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size: 14px;
+}
+
+.quark-ui-dialog-title{
+	background: #444;
+	border-bottom: 2px solid #F60;
+	color: #FFF;
+	font-size: 14px;
+	font-weight: bold;
+	padding: 8px 5px;
+}
+
+.quark-ui-dialog-content{
+	padding: 10px;
+}
+
+.quark-ui-button{
+	background: #E9E9E9;
+	border: 1px solid #AAA;
+	color: #444;
+	cursor: pointer;
+	font-size: 12px;
+	margin-left: 5px;
+	min-width: 80px;
+	padding: 5px;
+	text-align: center;
+}
+
+.quark-ui-button:hover{
+	background: #EFEFEF;
+}
+
+.quark-ui-button-ok{
+	background: #6AF;
+	border-color: #37A;
+	color: #FFF;
+}
+
+.quark-ui-button-ok:hover{
+	background: #7BF;
+	border-color: #37A;
+}
+
+.quark-ui-buttons-wrapper{
+	padding: 10px;
+	text-align: right;
+}
