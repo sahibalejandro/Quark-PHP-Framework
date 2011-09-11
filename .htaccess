@@ -1,0 +1,25 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#	Quark 3 - http://quarkphp.com
+#
+#	Autor: Sahib Alejandro Jaramillo Leo (http://sahibalejandro.com)
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Descomentar las siguientes lineas para habilitar URL amigable.
+#<IfModule mod_rewrite.c>
+#	RewriteEngine On
+#	RewriteCond $1 !^(index\.php|application/public|system/public)
+#	RewriteRule ^(.*)$ index.php?quark_path_info=$1&%{QUERY_STRING}
+#</IfModule>
+
+<IfModule mod_php5.c>
+
+	# Deshabilitar magic quotes GET POST COOKIE
+	php_flag magic_quotes_gpc off
+
+	#
+	# Agregar más configuraciones para PHP aquí
+	#
+
+</IfModule>
