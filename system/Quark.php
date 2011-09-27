@@ -24,7 +24,7 @@ class Quark
      * Versión del framework
      * @var string
      */
-    const VERSION = '3.0.2';
+    const VERSION = '3.0.3';
 
     /**
      * Versión minima de PHP necesaria
@@ -202,6 +202,10 @@ class Quark
             $errors = array_map('trim', $matches[1]);
             $errors = implode(PHP_EOL, $errors);
             define('QUARK_ERROR_MESSAGES', $errors);
+			
+			/* Log de mensajes de error */
+			chdir(dirname($_SERVER['SCRIPT_FILENAME']));
+			Quark::log(QUARK_ERROR_MESSAGES);
 
             if (QUARK_AJAX) {
                 header('content-type:application/json;charset=utf-8');
@@ -214,6 +218,23 @@ class Quark
             }
         }
     }
+	
+	/**
+	 * Envia un mensaje al archivo messages.log
+	 */
+	public static function log($message)
+	{
+		if( is_writable('messages.log') ){
+			$PathInfo = Quark::inst('QuarkUrl')->getPathInfo();
+			$full_message = '['.date('d-M-Y H:i:s').']';
+			$full_message .= PHP_EOL.'lang='. $PathInfo->lang;
+			$full_message .= ' controller='. $PathInfo->controller;
+			$full_message .= ' action='. $PathInfo->action;
+			$full_message .= ' arguments='. implode(', ', $PathInfo->arguments);
+			$full_message .= PHP_EOL.$message.PHP_EOL.PHP_EOL;
+			file_put_contents('messages.log', $full_message, FILE_APPEND);
+		}
+	}
 
     /**
      * Devuelve el valor de una directiva de configuración
