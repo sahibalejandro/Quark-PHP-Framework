@@ -20,7 +20,7 @@ GNU General Public License (http://www.gnu.org/licenses/gpl.html)
 	</ul>
 	<?php if (QUARK_DEBUG): ?>
     	<h2>Debug mode:</h2>
-    	<div id="errors"><?php echo QUARK_ERROR_MESSAGES ?></div>
+    	<div id="errors"><?php echo nl2br(QUARK_ERROR_MESSAGES) ?></div>
     <?php endif ?>
 	</body>
 </html>
