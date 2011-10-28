@@ -12,8 +12,7 @@
  */
 Quark.ajax = function(url, Options) {
 
-	var success_callback = function() {
-	};
+	var success_callback = function() {};
 	var error_callback;
 	var access_denied_callback;
 	var not_found_callback;
@@ -46,7 +45,7 @@ Quark.ajax = function(url, Options) {
 	Options = jQuery.extend({
 		type : 'post',
 		dataType : 'json',
-		url : Quark.getUrl(url) + (this.mode_friendly_url ? '?' : '&')
+		url : Quark.getUrl(url) + (this.FRIENDLY_URL ? '?' : '&')
 				+ 'quark_ajax=1&__=' + Math.random(),
 		error : function(Xhr, st_text, error) {
 			throw "Quark AJAX Request error:\nStatus text: " + st_text
