@@ -24,7 +24,7 @@ class Quark
      * Versión del framework
      * @var string
      */
-    const VERSION = '3.0.3';
+    const VERSION = '3.0.5';
 
     /**
      * Versión minima de PHP necesaria
