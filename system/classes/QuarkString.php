@@ -39,7 +39,7 @@ class QuarkString
      */
     public function cleanPath($path)
     {
-        return preg_replace('/(^\/|\/$)/', '', preg_replace('/\/{2,}/', '/', $path));
+        return preg_replace('/(^\/|\/$)/', '', preg_replace('/\/{2,}/', '/', str_replace("\\", '/', $path)));
     }
     
     /**
