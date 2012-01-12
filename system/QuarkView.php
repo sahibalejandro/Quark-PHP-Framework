@@ -121,6 +121,7 @@ class QuarkView
 	{
 		$args = func_get_args();
 		$this->_addHtmlResource('css', $args);
+		return $this;
 	}
 
 	/**
@@ -130,6 +131,7 @@ class QuarkView
 	{
 		$args = func_get_args();
 		$this->_addHtmlResource('css', $args, TRUE);
+		return $this;
 	}
 
 	/**
@@ -139,6 +141,7 @@ class QuarkView
 	{
 		$args = func_get_args();
 		$this->_addHtmlResource('js', $args);
+		return $this;
 	}
 
 	/**
@@ -148,6 +151,7 @@ class QuarkView
 	{
 		$args = func_get_args();
 		$this->_addHtmlResource('js', $args, TRUE);
+		return $this;
 	}
 
 	public function includeQuarkUIResources()
@@ -208,6 +212,7 @@ class QuarkView
 				echo '<link rel="stylesheet" type="text/css" href="', $css_file_url, '" media="', $css_media, '" />', PHP_EOL;
 			}
 		}
+		return $this;
 	}
 
 	/**
@@ -267,6 +272,7 @@ class QuarkView
 				echo '<script type="text/javascript" src="', $js_file_url, '"></script>', PHP_EOL;
 			}
 		}
+		return $this;
 	}
 
 	/**
@@ -339,6 +345,7 @@ class QuarkView
 			return $render;
 		} else {
 			echo $render;
+			return $this;
 		}
 	}
 
