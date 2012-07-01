@@ -66,6 +66,7 @@ class Quark
          */
         ob_start(array('Quark', 'obHandler'));
 
+        
         /* --------------------------------------------------
          * Definir include paths para buscar archivos primero en "application" y
          * despues en "system"
@@ -115,12 +116,19 @@ class Quark
           'system/controllers'), self::$_config['class_paths']);
 
         /* --------------------------------------------------
+         * Definir algunas clases
+         */
+        $QuarkStr = new QuarkStr();
+
+        /* --------------------------------------------------
          * Más constantes...
          */
         define('QUARK_ROOT_PATH', dirname($_SERVER['SCRIPT_FILENAME']));
         define('QUARK_APP_PATH', QUARK_ROOT_PATH . '/application');
         define('QUARK_SYS_PATH', QUARK_ROOT_PATH . '/system');
-
+        define('QUARK_APP_DIR'
+            , '/' . $QuarkStr->cleanPath(dirname($_SERVER['SCRIPT_NAME'])));
+        
         define('QUARK_DEBUG', self::$_config['debug']);
         define('QUARK_AJAX', isset($_GET['quark_ajax']));
         define('QUARK_MULTILANG', !empty(self::$_config['langs']));
@@ -141,10 +149,6 @@ class Quark
             require_once 'includes/' . $include_file;
         }
 
-        /* --------------------------------------------------
-         * Definir algunas clases
-         */
-        $QuarkStr = new QuarkStr();
 
         /* --------------------------------------------------
          * Instanciar controlador

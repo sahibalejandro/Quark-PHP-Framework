@@ -52,8 +52,8 @@ class QuarkSess
         if (!isset($_SESSION[$this->_session_name][self::$_namespace])) {
             
             /* Crear sesión a partir de la cookie si esta existe */
-            if( isset($_COOKIE[$this->_session_name.'.'.self::$_namespace]) ){
-                $_SESSION[$this->_session_name][self::$_namespace] = unserialize(base64_decode($_COOKIE[$this->_session_name.'.'.self::$_namespace]));
+            if( isset($_COOKIE[$this->_session_name.'_'.self::$_namespace]) ){
+                $_SESSION[$this->_session_name][self::$_namespace] = unserialize(base64_decode($_COOKIE[$this->_session_name.'_'.self::$_namespace]));
             } else {
                 /* NO hay cookie, creamos una sesión nueva */
                 $_SESSION[$this->_session_name][self::$_namespace] = array(
@@ -95,7 +95,7 @@ class QuarkSess
     {
         /* Escribir cookie */
         if ($_SESSION[$this->_session_name][$namespace]['_quark_save_cookie_']) {
-            setcookie($this->_session_name.'.'.$namespace, base64_encode(serialize($_SESSION[$this->_session_name][$namespace])), (time() + $this->_cookie_life_time), '/', Quark::getConfigVal('cookie_domain'));
+            setcookie($this->_session_name.'_'.$namespace, base64_encode(serialize($_SESSION[$this->_session_name][$namespace])), (time() + $this->_cookie_life_time), QUARK_APP_DIR, Quark::getConfigVal('cookie_domain'));
         }
     }
     
@@ -171,7 +171,7 @@ class QuarkSess
       }
       
       unset($_SESSION[$this->_session_name][self::$_namespace]);
-      setcookie($this->_session_name. '.'. $namespace, '', (time() - 1), '/', Quark::getConfigVal('cookie_domain'));
+      setcookie($this->_session_name. '_'. $namespace, '', (time() - 1), '/', Quark::getConfigVal('cookie_domain'));
     }
 
     /**

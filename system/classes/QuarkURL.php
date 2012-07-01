@@ -131,7 +131,7 @@ class QuarkURL
         $action = self::getPathInfo()->action == 'index' ? '' : self::getPathInfo()->action;
         $controller = $action != '' ? self::getPathInfo()->controller : (self::getPathInfo()->controller == 'home' ? '' : self::getPathInfo()->controller);
         $url = $controller . ($action == '' ? '' : "/$action");
-        return $this->getURL($url, $lang, true);
+        return $this->getURL($url, $lang);
     }
 
     /**
@@ -175,13 +175,7 @@ class QuarkURL
         /* Definimos el protocolo para armar la URL completa */
         $protocol = (strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') !== false ? 'https' : 'http');
 
-		$script_path = Quark::inst('QuarkStr')->cleanPath(dirname($_SERVER['SCRIPT_NAME']));
-
-        $base_url = $protocol . '://' . $host . '/';
-		
-		if(!empty($script_path)){
-			$base_url .= $script_path.'/';
-		}
+        $base_url = $protocol . '://' . $host . QUARK_APP_DIR . '/';
 		
 		return $base_url;
     }
@@ -202,13 +196,16 @@ class QuarkURL
      */
     public function getBaseURL($lang = null)
     {
+        // Generar $_base_url por primera vez
         if (self::$_base_url == null) {
             self::$_base_url = $this->_makeBaseUrl();
         }
 
         if ($lang != null) {
+            // Generar una base url con un lenguaje en especifico
             $url = $this->_makeBaseUrl($lang);
         } else {
+            // Utilizar la base url existente
             $url = self::$_base_url;
         }
         return $url;
@@ -232,7 +229,7 @@ class QuarkURL
     public function getURL($url, $lang = null)
     {
         $url = Quark::inst('QuarkStr')->cleanPath($url);
-        $base_url = $this->getBaseURL($lang, true);
+        $base_url = $this->getBaseURL($lang);
 
         /*
          * Agregar prefijo de lenguaje si estamos en multilenguaje
