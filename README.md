@@ -14,3 +14,7 @@ PHP 5.1+
 Apache2 o IIS (testeado en IIS7)
 Apache rewrite module para las URL amigables (URL Rewrite module en caso de IIS)
 MySQL 5 (en teoria también con MySQL 4)
+
+Wiki wiki wiki!
+==========
+http://docs.quarkphp.com/
