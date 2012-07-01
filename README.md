@@ -11,6 +11,7 @@ Trabaja con URLs amigables (opcional), sesiones, cookies, uploads, manipulación
 Requisitos
 ==========
 PHP 5.1+
+PDO_MYSQL
 Apache2 o IIS (testeado en IIS7)
 Apache rewrite module para las URL amigables (URL Rewrite module en caso de IIS)
 MySQL 5 (en teoria también con MySQL 4)
