@@ -112,11 +112,11 @@ class QuarkURL
     }
 
     /**
-     *  @deprecated Usar getURLLangSwitch() en su lugar.
+     *  @deprecated Usar getURLToSwitchLang() en su lugar.
      */
     public function urlSwitchLang($l)
     {
-        # code...
+        return $this->getURLToSwitchLang($l);
     }
 
     /**
@@ -126,12 +126,12 @@ class QuarkURL
      * @param string $lang
      * @return string
      */
-    public function getURLLangSwitch($lang)
+    public function getURLToSwitchLang($lang)
     {
         $action = self::getPathInfo()->action == 'index' ? '' : self::getPathInfo()->action;
         $controller = $action != '' ? self::getPathInfo()->controller : (self::getPathInfo()->controller == 'home' ? '' : self::getPathInfo()->controller);
         $url = $controller . ($action == '' ? '' : "/$action");
-        return $this->url($url, $lang, true);
+        return $this->getURL($url, $lang, true);
     }
 
     /**
