@@ -70,6 +70,7 @@ class QuarkSess
     public static function useNamespace($namespace)
     {
       self::$_namespace = $namespace;
+      return $this;
     }
 
     /**
@@ -84,6 +85,7 @@ class QuarkSess
 
       $_SESSION[$this->_session_name][$namespace]['_quark_save_cookie_'] = true;
       $this->_sendCookie($namespace);
+      return $this;
     }
     
     /**
@@ -111,6 +113,7 @@ class QuarkSess
     public function setAccessLevel($access_level)
     {
         $_SESSION[$this->_session_name][self::$_namespace]['_quark_access_level_'] = $access_level;
+        return $this;
     }
     
     /**
@@ -139,6 +142,7 @@ class QuarkSess
         $namespace = self::$_namespace;
       }
       $_SESSION[$this->_session_name][$namespace][$key] = $value;
+      return $this;
     }
     
     /**
