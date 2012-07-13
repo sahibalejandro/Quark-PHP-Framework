@@ -35,6 +35,7 @@ class Quark
     {
         ini_set('display_errors', 1);
 
+
         define('QUARK_VERSION', '3.5 BETA');
         define('QUARK_PHP_MIN_VERSION', '5.1');
 
@@ -100,6 +101,22 @@ class Quark
         ini_set('error_prepend_string', '<quarkerror>');
         ini_set('error_append_string', '</quarkerror>');
         error_reporting(self::$_config['error_reporting']);
+        date_default_timezone_set(self::$_config['time_zone']);
+
+        if(self::$_config['lc_all'] !== null){
+            setlocale(LC_ALL, self::$_config['lc_all']);
+        } else {
+            setlocale(LC_COLLATE  , self::$_config['lc_collate']);
+            setlocale(LC_CTYPE    , self::$_config['lc_ctype']);
+            setlocale(LC_MONETARY , self::$_config['lc_monetary']);
+            setlocale(LC_NUMERIC  , self::$_config['lc_numeric']);
+            setlocale(LC_TIME     , self::$_config['lc_time']);
+
+            // Only available if PHP was compiled with libintl
+            if(isset(self::$_config['lc_messages'])){
+                setlocale(LC_MESSAGES , self::$_config['lc_messages']);
+            }
+        }
 
         if (function_exists('set_magic_quotes_runtime')) {
             set_magic_quotes_runtime(0);
