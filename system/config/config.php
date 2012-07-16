@@ -26,18 +26,13 @@ $config['time_zone'] = 'America/Mexico_City';
 
 /**
  * LOCALE CONFIG:
- * 
- * String for the locale used in functions like strftime(), strtoupper(), etc.
- * If a value is an array, then each array element is tried to be set as locale until
- * success, this is usefull if a locale is known under different names or different
- * systems or for providing a fallback for a possibly not available locale.
+ * Las siguientes directivas serán utilizadas con setlocale(), si no sabes para
+ * que sirve esto no lo toques.
  *
- * If directive "lc_all" is not null then this value will be applied to all
- * categories.
- *
- * If a value is "0", the locale string is not affected.
+ * Si lc_all es diferente de null entonces todas las otras directivas lc_* tomarán
+ * el mismo valor que lc_all.
  * 
- * For more information: http://php.net/manual/en/function.setlocale.php
+ * Más info en: http://php.net/manual/en/function.setlocale.php
  */
 $config['lc_all']      = null;
 $config['lc_collate']  = "0";
