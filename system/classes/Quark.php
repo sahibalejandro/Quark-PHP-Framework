@@ -172,7 +172,8 @@ class Quark
     $controller_name = $QuarkStr->toUpperCamelCase($PathInfo->controller);
     $action_name     = $QuarkStr->toLowerCamelCase($PathInfo->action);
 
-    if (!class_exists("{$controller_name}Controller")) {
+    if (!file_exists(
+      QUARK_APP_PATH . "/controllers/{$controller_name}Controller.php")) {
       // No existe el controlador solicitado, invocamos a QuarkController
       // para tener acceso a los metodos __quarkNotFound y __quarkAccessDenied
       $controller_name = 'Quark';
