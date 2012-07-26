@@ -57,15 +57,24 @@ class QuarkSess
         );
       } else {
         // Create new session data
-        $_SESSION[$this->_session_name][self::$_namespace] = array(
-          '_quark_access_level_' => 0,
-          '_quark_save_cookie_' => false
-        );
+        $this->_createSessionData(self::$_namespace);
       }
     }
     
     // Try to send cookie to client.
     $this->_sendCookie(self::$_namespace);
+  }
+  
+  /**
+   * Creates new session data using the namespace $namespace
+   * @param string $namespace Namespace
+   */
+  public function _createSessionData($namespace)
+  {
+    $_SESSION[$this->_session_name][$namespace] = array(
+      '_quark_access_level_' => 0,
+      '_quark_save_cookie_' => false
+    );
   }
   
   /**
@@ -205,6 +214,9 @@ class QuarkSess
       , (time() - 1)
       , QUARK_APP_DIR
       , Quark::getConfigVal('cookie_domain'));
+    
+    // Create new session data
+    $this->_createSessionData($namespace);
   }
 
   /**
