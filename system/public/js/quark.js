@@ -111,13 +111,18 @@ var Quark = new (function()
       + (!QUARK_FRIENDLY_URL ? '?' : '')
       + url
       + (!QUARK_FRIENDLY_URL ? '&' : '?')
-      + 'quark_ajax=1', Settings);
+      + 'quark_ajax=1&' + Math.random(), Settings);
   };
 
   this.setAJAXSettings = function(Settings)
   {
     _AJAXSettings = $.extend({}, _AJAXSettings, Settings);
   };
+  
+  this.getAJAXSettings = function()
+  {
+    return _AJAXSettings;
+  }
 
   /**
    * Devuelve una URL valida, igual que QuarkURL::getURL();
