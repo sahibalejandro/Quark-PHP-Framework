@@ -141,12 +141,6 @@ class QuarkController
     public $QuarkSess;
 
     /**
-     * Instancia de QuarkHTML
-     * @var QuarkHTML
-     */
-    protected $QuarkHTML;
-    
-    /**
      * Constructor del controlador
      */
     public function __construct()
@@ -154,7 +148,6 @@ class QuarkController
       $this->QuarkURL     = new QuarkURL();
       $this->QuarkStr     = new QuarkStr();
       $this->QuarkSess = new QuarkSess();
-      $this->QuarkHTML    = new QuarkHTML();
       if(QUARK_MULTILANG){
         $this->QuarkLang = new QuarkLang();
       }
