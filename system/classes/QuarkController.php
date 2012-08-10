@@ -340,6 +340,7 @@ class QuarkController
       return $render;
     } else {
       echo $render;
+      return $this;
     }
   }
 
