@@ -200,7 +200,16 @@ class QuarkImage
 
         if($image_copied && $crop){
           $img_crop = imagecreatetruecolor($max_w, $max_h);
-          $image_copied = imagecopy($img_crop, $img_dst, 0, 0, $src_x, $src_y, $max_w, $max_h);
+          $image_copied = imagecopy(
+            $img_crop,
+            $img_dst,
+            0,
+            0,
+            $src_x,
+            $src_y,
+            $max_w,
+            $max_h
+          );
           imagedestroy($img_dst);
           $img_dst = $img_crop;
         }

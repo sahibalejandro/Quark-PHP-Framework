@@ -1,17 +1,17 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#	Quark 3.5 - http://quarkphp.com
-#	Author: Sahib Alejandro Jaramillo Leo (http://sahibalejandro.com)
+# Quark 3.5 - http://quarkphp.com
+# Author: Sahib Alejandro Jaramillo Leo (http://sahibalejandro.com)
 # Licence: GNU General Public License (http://www.gnu.org/licenses/gpl.html)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 Options -Indexes
 
 <IfModule mod_rewrite.c>
-	RewriteEngine On
-	RewriteCond $1 !^(application/public|system/public)
-	RewriteRule ^(.*)$ index.php?quark_path_info=$1&%{QUERY_STRING}
+  RewriteEngine On
+  RewriteCond $1 !^(application/public|system/public)
+  RewriteRule ^(.*)$ index.php?quark_path_info=$1&%{QUERY_STRING}
 </IfModule>
 
 <IfModule mod_php5.c>
-	php_flag magic_quotes_gpc off
+  php_flag magic_quotes_gpc off
 </IfModule>

@@ -16,7 +16,7 @@ GNU General Public License (http://www.gnu.org/licenses/gpl.html)
 <h1>Pagina no encontrada</h1>
 Lo siento, la pagina que buscas no existe.
 <ul>
-	<li><a href="<?php echo $this->QuarkURL->getBaseURL()?>">Regresar al inicio</a></li>
+  <li><a href="<?php echo $this->QuarkURL->getBaseURL()?>">Regresar al inicio</a></li>
 </ul>
 </body>
 </html>
