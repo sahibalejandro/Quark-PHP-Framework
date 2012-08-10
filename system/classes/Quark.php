@@ -1,6 +1,6 @@
 <?php
 /**
- * Quark 3.5 PHP Framework
+ * QuarkPHP Framework
  * Copyright (C) 2012 Sahib Alejandro Jaramillo Leo
  *
  * @link http://quarkphp.com
@@ -35,7 +35,7 @@ class Quark
   {
     ini_set('display_errors', 1);
 
-    define('QUARK_VERSION', '3.5 BETA');
+    define('QUARK_VERSION', '3.5.1');
     define('QUARK_PHP_MIN_VERSION', '5.1');
 
     /* --------------------------------------------------

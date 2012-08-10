@@ -1,6 +1,6 @@
 <?php
 /**
- * Quark 3.5 PHP Framework
+ * QuarkPHP Framework
  * Copyright (C) 2012 Sahib Alejandro Jaramillo Leo
  *
  * @link http://quarkphp.com
