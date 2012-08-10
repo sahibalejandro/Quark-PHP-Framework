@@ -1,12 +1,11 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
 #	Quark 3.5 - http://quarkphp.com
-#
-#	Autor: Sahib Alejandro Jaramillo Leo (http://sahibalejandro.com)
-#
+#	Author: Sahib Alejandro Jaramillo Leo (http://sahibalejandro.com)
+# Licence: GNU General Public License (http://www.gnu.org/licenses/gpl.html)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# Descomentar las siguientes lineas para habilitar URL amigable.
+Options -Indexes
+
 <IfModule mod_rewrite.c>
 	RewriteEngine On
 	RewriteCond $1 !^(application/public|system/public)
@@ -14,6 +13,5 @@
 </IfModule>
 
 <IfModule mod_php5.c>
-	# Deshabilitar magic quotes GET POST COOKIE
 	php_flag magic_quotes_gpc off
 </IfModule>

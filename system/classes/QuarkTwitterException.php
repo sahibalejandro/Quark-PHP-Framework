@@ -7,11 +7,8 @@
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
  */
 
-class HomeController extends QuarkController
+class QuarkTwitterException extends Exception
 {
-  public function index()
-  {
-    echo 'Quark PHP v', QUARK_VERSION, '<br />',
-      'Defina su controlador HomeController en application/controllers';
-  }
+  const ERR_RESPONSE = 1;
+  const ERR_REQUEST  = 2;
 }

@@ -35,10 +35,10 @@ $config['time_zone'] = 'America/Mexico_City';
  * Más info en: http://php.net/manual/en/function.setlocale.php
  */
 $config['lc_all']      = null;
-$config['lc_collate']  = "0";
-$config['lc_ctype']    = "0";
-$config['lc_monetary'] = "0";
-$config['lc_numeric']  = "0";
+$config['lc_collate']  = '0';
+$config['lc_ctype']    = '0';
+$config['lc_monetary'] = '0';
+$config['lc_numeric']  = '0';
 $config['lc_time']     = array('es_MX.UTF8', 'esm');
 // Use only available if PHP was compiled with libintl
 // $config['lc_messages'] = "0";
