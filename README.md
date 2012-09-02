@@ -26,9 +26,8 @@ Requisites
 ==========
 
 * PHP 5.1+ with PDO_MYSQL driver
-* Apache2 o IIS
+* Apache2 or IIS
 * Apache's mod_rewrite or IIS URL Rewrite for friendly URL
-* MySQL
 
 Documentation (in spanish for now)
 ==========
