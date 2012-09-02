@@ -8,14 +8,20 @@
  */
 
 /*
- * Este archivo es de ejemplo, haga una copia de este archivo en su directorio
- * "application/config" y modifique los parametros para ajustarlos a las
- * necesadades de sus sitema
+ * This is the default configuration file used in your site, if you need custom
+ * configuration copy this entire file (or just the variables you need) to
+ * "application/config/config.php"
  */
 
+/*===================================================================================
+
+  ENVIRONMENT CONFIGURATION
+  
+  =================================================================================*/
+
 /**
- * Nombre de la sesión, para evitar sobreescribir sesiones de otros sitios
- * basados en quark
+ * Session name, this must be diferent between each of your projects to avoid
+ * session data overwriting.
  */
 $config['session_name'] = 'quark3';
 
@@ -26,13 +32,13 @@ $config['time_zone'] = 'America/Mexico_City';
 
 /**
  * LOCALE CONFIG:
- * Las siguientes directivas serán utilizadas con setlocale(), si no sabes para
- * que sirve esto no lo toques.
+ * The following directives will be used with setlocale()
+ * If you don't know what this is you should not touch it.
  *
- * Si lc_all es diferente de null entonces todas las otras directivas lc_* tomarán
- * el mismo valor que lc_all.
+ * If lc_all is NOT NULL then all other lc_* directives will take the same value
+ * of lc_all.
  * 
- * Más info en: http://php.net/manual/en/function.setlocale.php
+ * More info en: http://php.net/manual/en/function.setlocale.php
  */
 $config['lc_all']      = null;
 $config['lc_collate']  = '0';
@@ -44,93 +50,110 @@ $config['lc_time']     = array('es_MX.UTF8', 'esm');
 // $config['lc_messages'] = "0";
 
 /**
- * Tiempo de vida (en segundos) de la cookie, por default 15 días.
+ * Execution will stops if magic quotes GPC is activated, showing an error message.
+ * You should never use magic quotes GPC.
+ */
+$config['error_magic_quotes_gpc'] = true;
+
+/**
+ * Cookie lifetime in seconds, default to 15 days.
  */
 $config['cookie_life_time'] = 1296000;
 
 /**
- * Dominio de la cookie, cuando se van a utilizar sitios en multiples lenguajes y
- * el prefijo de lenguaje se encuentra en el subdominio, es necesario especificar
- * aquí el nombre del dominio al cual pertenecerá la cookie, para que este
- * disponible en todos los subdominios, si no se utiliza especificar null
+ * If you're using multilanguage sites with language defined in subdomain you
+ * should set this variable to your main domian, for example, if you're building
+ * a web site in languages english and japanese then your domains will be:
+ * "eng.mydomain.com" and "jap.mydomain.com" and the value of this variable should
+ * be "mydomain.com" to share the cookie across "eng" and "jap" subdomains.
  */
 $config['cookie_domain'] = null;
 
 /**
- * Si de debug mode es true, se mostraran los detalles de los errores en los
- * mensajes de error.
- * Es responsabilidad del usuario mostrar los mensajes en las vistas
- * personalizadas.
+ * When debug is true, all error messages will be displayed, you should set this to
+ * false in production environments.
  */
 $config['debug'] = true;
 
 /**
- * Lista de prefijos de lenguaje que se utilizaran para un sitio multi lenguaje,
- * el primer lenguaje definido será el lenguaje por default.
+ * Language prefixes, if this array is not empty then QUARK_MULTILANG constant will
+ * be true (or false otherwise), this elements will be prefix any URL generated
+ * with QuarkURL->getURL() or QuarkURL->getBaseURL() methods automatically.
  */
 $config['langs'] = array();
 
 /**
- * Si lang on subdomain es true, el prefijo del lenguaje se tomará del subdominio
- * y no del path info, esto tambien afectara el comportamiento de los metodos de
- * QuarkURL para generar las URL validas con el prefijo de lenguaje en el
- * subdominio.
+ * Defines if the language prefix will be on the subdomain of any URL, or will be
+ * as a part of the URL path, for example, if is set to false then the URLs will
+ * be like "mydomain.com/eng/home/", if is set to true then the URLs will be
+ * like "eng.mydomian.com/home/"
  */
 $config['lang_on_subdomain'] = false;
 
 /**
- * Flags para error_reporting()
+ * error_reporting() flags
  */
 $config['error_reporting'] = E_ALL ^ E_DEPRECATED;
 
 /**
- * Lista de archivos a incluir antes de instanciar el controlador, por lo general
- * estos archivos son para definir constantes y/o funciones para que esten
- * disponibles desde cualquier punto en la aplicación.
- * Estos archivos deberan estar alojados en el directorio "application/includes"
+ * Scripts that are included before the controller is instantiated, these scripts
+ * should be in the "application/includes" path.
  */
 $config['auto_includes'] = array();
 
 /**
- * Lista de directorios (a partir del root de la aplicación) donde __autoload()
- * buscará los archivos de definición de clases, es útil por ejemplo si quieremos
- * organizar controladores en subdirectorios dentro del diectorio
- * "application/controllers"
+ * List of paths to use with __autoload()
+ * These paths are relative to your project root.
+ * "application/classes" is used automatically.
  */
 $config['class_paths'] = array();
 
+/*===================================================================================
+
+  DATABASE CONFIGURATION
+  
+  "default" is the default connection to use, if you need to connect to more than one database copy all $db_config directives and change "default" to the name you want to that connection.
+  "default" connection ALWAYS need to be there.
+  
+  =================================================================================*/
+
 /*
- * Host de la base de datos
+ * Database host
  */
 $db_config['default']['host'] = 'localhost';
 /*
- * Nombre de la base de datos
+ * Database name
  */
 $db_config['default']['database'] = 'database';
 /*
- * Usuario para conectar a la base de datos
+ * Database user
  */
 $db_config['default']['user'] = 'user';
 /*
- * Password el usuario
+ * Database password
  */
 $db_config['default']['password'] = 'password';
 /*
- * Opciones para pasar al constructor de PDO
+ * Driver specific options for the PDO object used by the ORM engine.
+ * See http://www.php.net/manual/es/pdo.setattribute.php
  */
 $db_config['default']['options'] = array();
 /*
- * Codificación de caracteres para utilizar en las consultas (Ej. SET NAMES "UTF8")
+ * Character encoding to use in the "SET NAMES" query
  */
 $db_config['default']['charset'] = 'UTF8';
 
-/*
- * Lista de rutas, array asociativo, el key es la expresión a evaluar y el valor
- * es la ruta que será reemplazada.
+/*===================================================================================
+
+  ROUTES CONFIGURATION
+  
+  =================================================================================*/
+
+/**
+ * Asociative array where the key is the regexp to match and the value is the the
+ * route to be used.
  * 
- * Ej. "home/([0-9]+)" => 'home/entry/$1'
- * Explicación:
- * Toda url que coincida con "home/<cualquier-numero>" sera redireccionada a
- * "home/entry/<numero>"
+ * Example: "home/([0-9]+)" => 'home/entry/$1'
+ * Any URL that match "home/<number>" will be trated as "home/entry/<number>"
  */
 $routes = array();

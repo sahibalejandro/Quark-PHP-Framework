@@ -5,18 +5,20 @@ Copyright (C) 2012 Sahib Alejandro Jaramillo Leo
 http://quarkphp.com
 GNU General Public License (http://www.gnu.org/licenses/gpl.html)
  -->
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en-US">
 <head>
-<meta charset="utf-8" />
-<title>Acceso denegado</title>
-<link rel="stylesheet" type="text/css" href="<?php echo $this->QuarkURL->getBaseURL()?>system/public/css/quark.css" />
+  <meta charset="UTF-8">
+  <title>Access denied</title>
+  <link rel="stylesheet" type="text/css" href="system/public/css/quark.css">
 </head>
 <body>
-<h1>Acceso denegado!</h1>
-Lo siento, no tienes los permisos para ver la pagina.
-<ul>
-  <li><a href="<?php echo $this->QuarkURL->getBaseURL()?>">Regresar al inicio</a></li>
-</ul>
+  <h2>Access denied</h2>
+  <p>You don't have permission to see this page.</p>
+  <p><a href="<?php echo $this->QuarkURL->getBaseURL(); ?>">Back to main page</a></p>
+  <div id="footer">
+    This web site is builded with QuarkPHP v<?php echo QUARK_VERSION; ?>
+    - <a href="http://quarkphp.com">http://quarkphp.com</a>
+  </div>
 </body>
 </html>

@@ -5,19 +5,58 @@
  * Web: http://quarkphp.com
  * License: GNU General Public License (http://www.gnu.org/licenses/gpl.html)
  */
-
-@charset "utf-8";
-
-body{
-  border: 1px solid #DDD;
+body {
   color: #444;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 14px;
-  margin: 20px;
+  padding: 10px;
+  margin: 0;
+}
+
+h2 {
+  padding: 0;
+  margin: 5px 0;
+}
+
+#debug {
+  background-color: #EFEFEF;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+#debug_tip {
+  background-color: #FF9C92;
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 10px 0;
+  padding: 5px 10px;
+}
+
+#debug_tip em {
+  font-family: monospace;
+  font-style: normal;
+  font-weight: bold;
+  margin: 0 10px;
+}
+
+#error_messages {
+  font-family: monospace;
+  padding-top: 10px;
+}
+
+.error_message {
+  background-color: #CCC;
+  border-radius: 5px;
+  margin-bottom: 5px;
   padding: 5px;
 }
 
-#errors{
-  font-family: "Courier New", Courier, monospace;
-  font-size: 14px;
+.error_message:last-child {
+  margin-bottom: 0;
+}
+
+#footer {
+  font-size: 11px;
+  padding: 10px 0 50px 0;
+  margin-top: 10px;
 }

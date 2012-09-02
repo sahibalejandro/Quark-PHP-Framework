@@ -54,6 +54,9 @@ var Quark = new (function()
       alert('Recurso "' + resource_url + '" no encontrado.');
     },
 
+    /**
+     * jQuery's Ajax Event method, triggered when the request fails.
+     */
     error: function(jqXHR, text_status, error_thrown)
     {
       alert("La solicitud no se pudo completar.\nSTATUS: " + text_status + "\nERROR: " + error_thrown);

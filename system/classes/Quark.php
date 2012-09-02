@@ -65,7 +65,6 @@ class Quark
      * Inicializar output buffer handler
      */
     ob_start(array('Quark', 'obHandler'));
-
     
     /* --------------------------------------------------
      * Definir include paths para buscar archivos primero en "application" y
@@ -117,10 +116,6 @@ class Quark
       }
     }
 
-    if (function_exists('set_magic_quotes_runtime')) {
-      set_magic_quotes_runtime(0);
-    }
-
     /* --------------------------------------------------
      * Agregar class paths para __autoload()
      */
@@ -150,6 +145,23 @@ class Quark
     define('QUARK_MULTILANG', !empty(self::$_config['langs']));
     define('QUARK_FRIENDLY_URL', isset($_GET['quark_path_info']));
     define('QUARK_LANG_ON_SUBDOMAIN', self::$_config['lang_on_subdomain']);
+
+    /* --------------------------------------------------
+     * Magic quotes handle
+     */
+    if (function_exists('get_magic_quotes_gpc')) {
+      if (self::$_config['error_magic_quotes_gpc'] && get_magic_quotes_gpc()) {
+        trigger_error(
+          "Magic quotes is activated. To ignore this message set \$config['error_magic_quotes_gpc'] to false in config.php file.",
+          E_USER_ERROR
+        );
+      }
+    }
+    
+    // Disable runtime magic quotes
+    if (function_exists('set_magic_quotes_runtime')) {
+      set_magic_quotes_runtime(0);
+    }
 
     /* --------------------------------------------------
      * Leer path info
@@ -253,18 +265,16 @@ class Quark
       == false) {
       return $buffer;
     } else {
-      $errors = array_map('trim', $matches[1]);
-      $errors = implode(PHP_EOL, $errors);
-      define('QUARK_ERROR_MESSAGES', $errors);
-    
+      $error_messages = array_map('trim', $matches[1]);
+
       /* Log de mensajes de error */
       chdir(dirname($_SERVER['SCRIPT_FILENAME']));
-      Quark::log(QUARK_ERROR_MESSAGES);
+      Quark::log(implode(PHP_EOL, $error_messages));
 
       if (QUARK_AJAX) {
         // Enviar solo el mensaje de error en la respuesta ajax, el objeto
         header('content-type:application/json;charset=utf-8');
-        return '{"error":' . json_encode(QUARK_ERROR_MESSAGES) . '}';
+        return '{"error":' . json_encode(implode(PHP_EOL, $error_messages)) . '}';
       } else {
         // Renderizar la vista de mensaje de error
         $old_buffer = ob_get_contents();
@@ -342,6 +352,6 @@ class Quark
       var_dump($arg);
     }
     echo '</pre>';
-    exit();
+    exit;
   }
 }

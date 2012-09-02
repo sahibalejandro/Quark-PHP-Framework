@@ -5,18 +5,20 @@ Copyright (C) 2012 Sahib Alejandro Jaramillo Leo
 http://quarkphp.com
 GNU General Public License (http://www.gnu.org/licenses/gpl.html)
  -->
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en-US">
 <head>
-<meta charset="utf-8" />
-<title>Error 404</title>
-<link rel="stylesheet" type="text/css" href="<?php echo $this->QuarkURL->getBaseURL()?>system/public/css/quark.css" />
+  <meta charset="UTF-8">
+  <title>404 Not found</title>
+  <link rel="stylesheet" type="text/css" href="system/public/css/quark.css">
 </head>
 <body>
-<h1>Pagina no encontrada</h1>
-Lo siento, la pagina que buscas no existe.
-<ul>
-  <li><a href="<?php echo $this->QuarkURL->getBaseURL()?>">Regresar al inicio</a></li>
-</ul>
+  <h2>404 - Not found.</h2>
+  <p>The page or file you're looking for does not exists.</p>
+  <p><a href="<?php echo $this->QuarkURL->getBaseURL(); ?>">Back to main page</a></p>
+  <div id="footer">
+    This web site is builded with QuarkPHP v<?php echo QUARK_VERSION; ?>
+    - <a href="http://quarkphp.com">http://quarkphp.com</a>
+  </div>
 </body>
 </html>
