@@ -314,10 +314,8 @@ class QuarkController
       $old_lang_resource = $this->QuarkLang->setResource($lang_resource);
     }
     
-    /* Agregar variables a la lista */
-    if (is_array($vars)) {
-      $this->_view_vars = array_merge($this->_view_vars, $vars);
-    }
+    /* Add variables to use in the views */
+    $this->addViewVars($vars);
     
     /* Mapear variables de la lista al entorno actual */
     foreach ( $this->_view_vars as $var => &$val ) {
@@ -341,6 +339,18 @@ class QuarkController
     } else {
       echo $render;
       return $this;
+    }
+  }
+  
+  /**
+   * Add more values to the variables list which will be used when render views
+   * 
+   * @param array $vars_array Array key/value with the variables definition.
+   */
+  protected function addViewVars($vars_array)
+  {
+    if (is_array($vars_array)) {
+      $this->_view_vars = array_merge($this->_view_vars, $vars_array);
     }
   }
 
