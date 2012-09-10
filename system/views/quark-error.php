@@ -10,7 +10,7 @@ GNU General Public License (http://www.gnu.org/licenses/gpl.html)
 <head>
   <meta charset="UTF-8">
   <title>Something is wrong</title>
-  <link rel="stylesheet" type="text/css" href="system/public/css/quark.css">
+  <link rel="stylesheet" type="text/css" href="<?php echo Quark::inst('QuarkURL')->getBaseURL(); ?>system/public/css/quark.css">
 </head>
 <body>
   <h2>This page is not working properly.</h2>
@@ -31,7 +31,7 @@ GNU General Public License (http://www.gnu.org/licenses/gpl.html)
         <?php
         foreach ($error_messages as $error_msg):
         ?>
-        <li class="error_message"><?php echo $error_msg; ?></li>
+        <li class="error_message"><?php echo nl2br($error_msg); ?></li>
         <?php
         endforeach;
         ?>
