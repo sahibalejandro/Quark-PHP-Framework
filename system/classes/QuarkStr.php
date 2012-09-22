@@ -138,4 +138,18 @@ class QuarkStr
     $str = str_replace('&', '-y-', $str);
     return preg_replace('/[^[:alnum:]-]/', '', $str);
   }
+  
+  /**
+   * Cuts a string at the $max_words count, words are separated only by spaces.
+   * 
+   * @param string $string String to cut
+   * @param int $max_words Max number of words.
+   * @return string The result string.
+   */
+  public function cutAtWord($string, $max_words)
+  {
+    return implode(' ',
+      array_slice(preg_split('/ +/', $string, $max_words + 1, null), 0, $max_words)
+    );
+  }
 }
