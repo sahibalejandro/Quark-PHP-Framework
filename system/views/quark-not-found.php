@@ -17,7 +17,7 @@ GNU General Public License (http://www.gnu.org/licenses/gpl.html)
   <p>The page or file you're looking for does not exists.</p>
   <p><a href="<?php echo $this->QuarkURL->getBaseURL(); ?>">Back to main page</a></p>
   <div id="footer">
-    This web site is builded with QuarkPHP v<?php echo QUARK_VERSION; ?>
+    This web site is builded with QuarkPHP v<?php echo Quark::VERSION; ?>
     - <a href="http://quarkphp.com">http://quarkphp.com</a>
   </div>
 </body>

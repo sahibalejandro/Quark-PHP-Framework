@@ -11,7 +11,7 @@ class HomeController extends QuarkController
 {
   public function index()
   {
-    echo 'Quark PHP v', QUARK_VERSION, '<br />',
+    echo 'Quark PHP v', Quark::VERSION, '<br />',
       'Define your own HomeController in application/controllers';
   }
 }

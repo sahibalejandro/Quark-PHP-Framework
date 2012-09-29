@@ -42,7 +42,7 @@ GNU General Public License (http://www.gnu.org/licenses/gpl.html)
   endif;
   ?>
   <div id="footer">
-    This web site is builded with QuarkPHP v<?php echo QUARK_VERSION; ?>
+    This web site is builded with QuarkPHP v<?php echo Quark::VERSION; ?>
     - <a href="http://quarkphp.com">http://quarkphp.com</a>
   </div>
 </body>
