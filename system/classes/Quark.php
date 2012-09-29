@@ -35,7 +35,7 @@ class Quark
   {
     ini_set('display_errors', 1);
 
-    define('QUARK_VERSION', '3.5.2 dev');
+    define('QUARK_VERSION', '3.5.2');
     define('QUARK_PHP_MIN_VERSION', '5.1');
 
     /* --------------------------------------------------
