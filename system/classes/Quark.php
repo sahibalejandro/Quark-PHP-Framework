@@ -51,13 +51,23 @@ class Quark
     /* --------------------------------------------------
      * Autoload classes
      */
-    function __autoload($class_name)
+    function quarkphp_autoload($class_name)
     {
       foreach (Quark::getConfigVal('class_paths') as $path) {
         if (is_file("$path/$class_name.php")) {
           require "$path/$class_name.php";
           break;
         }
+      }
+    }
+    
+    // Use SPL Autload if is available
+    if (function_exists('spl_autoload_register')) {
+      spl_autoload_register('quarkphp_autoload');
+    } else {
+      function __autoload($class_name)
+      {
+        quarkphp_autoload($class_name);
       }
     }
 
