@@ -28,6 +28,8 @@ class Quark
 
   private static $_called_action;
 
+  const VERSION = '3.5.2 dev';
+
   /**
    * Bootstrap
    */
@@ -35,15 +37,18 @@ class Quark
   {
     ini_set('display_errors', 1);
 
-    define('QUARK_VERSION', '3.5.2 dev');
-    define('QUARK_PHP_MIN_VERSION', '5.1');
+    /**
+     * @deprecated Used for backward compatibilty
+     */
+    define('QUARK_VERSION', self::VERSION);
 
     /* --------------------------------------------------
      * Validar versión minima de PHP 5.1
      */
-    if (version_compare(PHP_VERSION, QUARK_PHP_MIN_VERSION) < 0) {
+    $php_min_version = '5.1';
+    if (version_compare(PHP_VERSION, $php_min_version) < 0) {
       header('Content-Type: text/plain');
-      die('Sorry, QuarkPHP needs PHP version '. QUARK_PHP_MIN_VERSION
+      die('Sorry, QuarkPHP needs PHP version '. $php_min_version
         . ' or higher, your current PHP version is '. PHP_VERSION
       );
     }
@@ -98,10 +103,6 @@ class Quark
     self::$_routes    = $routes;
     self::$_db_config = $db_config;
 
-    // Liberar memoria
-    unset($config);
-    unset($db_config);
-    unset($routes);
 
     /* --------------------------------------------------
      * Configurar el entorno
@@ -232,6 +233,18 @@ class Quark
     self::$_called_controller = $QuarkStr->unCamelCase($controller_name);
     self::$_called_action     = $QuarkStr->unCamelCase($action_name);
 
+    /* --------------------------------------------------
+     * Free memory before calling controller's method to
+     * have the maximum possible memory.
+     */
+    unset($config);
+    unset($db_config);
+    unset($routes);
+    unset($include_paths);
+    unset($php_min_version);
+    unset($QuarkStr);
+
+    // Call controller's method, pass the ball to developer!
     if (empty($PathInfo->arguments)) {
       $Controller->$action_name();
     } else {
@@ -245,6 +258,7 @@ class Quark
       eval('$Controller->$action_name(' . implode(',', $arguments) . ');');
     }
 
+    // Send AJAX response if request is in AJAX mode
     if (QUARK_AJAX) {
       $Controller->__sendAjaxResponse();
     }
