@@ -179,8 +179,7 @@ class QuarkURL
         $host_parts[0] = $lang;
       } else {
         /* El subdominio no es un prefijo de lenguaje, insertamos el
-         * prefijo del
-         * lenguaje actual al inicio de las partes de host name para
+         * prefijo del lenguaje actual al inicio de las partes de host name para
          * despues pegarlo */
         array_unshift($host_parts, $lang);
       }
@@ -198,14 +197,6 @@ class QuarkURL
       . (QUARK_APP_DIR == '/' ? '' : '/');
         
     return $base_url;
-  }
-
-  /**
-   * @deprecated Usar getBaseURL() en su lugar
-   */
-  public function baseUrl($lang = null)
-  {
-      return $this->getBaseURL($lang);
   }
 
   /**
@@ -232,21 +223,13 @@ class QuarkURL
   }
 
   /**
-   * @deprecated Usar getURL() en su lugar.
-   */
-  public function url($url, $lang = null)
-  {
-    return $this->getURL($url, $lang);
-  }
-
-  /**
    * Devuelve una URL en base a $url y $lang opcional.
    *
    * @param string $url
    * @param string $lang
    * @return string
    */
-  public function getURL($url, $lang = null)
+  public function getURL($url = '', $lang = null)
   {
     $url = Quark::inst('QuarkStr')->cleanPath($url);
     $base_url = $this->getBaseURL($lang);
@@ -256,7 +239,9 @@ class QuarkURL
      * y el lenguaje no esta en el subdominio.
      */
     if (QUARK_MULTILANG && !QUARK_LANG_ON_SUBDOMAIN) {
-      if ($lang == null) {
+      if ($lang == null
+        || array_search($lang, Quark::getConfigVal('langs')) === false
+      ) {
         $lang = self::getPathInfo()->lang;
       }
       $url = $lang . '/' . $url;
@@ -275,5 +260,21 @@ class QuarkURL
      * Generar URL de salida.
      */
     return $base_url . ((!QUARK_FRIENDLY_URL && !empty($url)) ? '?' : '') . $url;
+  }
+  
+  /**
+   * @deprecated This will be removed on version 3.6, use getURL(...) instead.
+   */
+  public function url($url, $lang = null)
+  {
+    return $this->getURL($url, $lang);
+  }
+
+  /**
+   * @deprecated This will be removed on version 3.6, use getBaseURL(...) instead.
+   */
+  public function baseUrl($lang = null)
+  {
+      return $this->getBaseURL($lang);
   }
 }
