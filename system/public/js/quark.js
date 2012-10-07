@@ -22,7 +22,7 @@ var Quark = new (function()
   var _AJAXSettings = {
     type: 'post',
     dataType: 'json',
-    data: {},
+    data: '',
     lang: null,
     
     // NOTA: Esta function es movida a userComplete()
@@ -119,7 +119,11 @@ var Quark = new (function()
     };
     
     // Send `quark_ajax` with Settings.data
-    Settings.data.quark_ajax = Math.random();
+    if (typeof Settings.data == 'string') {
+      Settings.data = 'quark_ajax=' + Math.random() + '&' + Settings.data;
+    } else if (typeof Settings.data == 'object') {
+      Settings.data['quark_ajax'] = Math.random();
+    }
     
     // Set the language to the request if needed.
     if (QUARK_MULTILANG && Settings.lang == null) {
