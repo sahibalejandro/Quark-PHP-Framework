@@ -8,15 +8,22 @@
  * @link http://quarkphp.com
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
  */
-var QUARK_DEBUG = <?php echo QUARK_DEBUG ? 'true' : 'false' ?>;
-var QUARK_FRIENDLY_URL = <?php echo QUARK_FRIENDLY_URL ? 'true' : 'false' ?>;
+var QUARK_DEBUG = <?php echo QUARK_DEBUG ? 'true' : 'false'; ?>;
+var QUARK_FRIENDLY_URL = <?php echo QUARK_FRIENDLY_URL ? 'true' : 'false'; ?>;
+var QUARK_MULTILANG = <?php echo QUARK_MULTILANG ? 'true' : 'false'; ?>;
+var QUARK_LANG_ON_SUBDOMAIN = <?php
+  echo QUARK_LANG_ON_SUBDOMAIN ? 'true' : 'false';
+?>;
 
 var Quark = new (function()
 {
   var _base_url = <?php echo json_encode($this->QuarkURL->getBaseURL()) ?>;
+  
   var _AJAXSettings = {
     type: 'post',
     dataType: 'json',
+    data: '',
+    lang: null,
     
     // NOTA: Esta function es movida a userComplete()
     // Funcion invocada cuando data.data.error es false
@@ -38,20 +45,20 @@ var Quark = new (function()
     // Invocado cuando data.error es true
     scriptError: function(error_msg)
     {
-      alert('Ocurrió un error al procesar la solicitud, intenta de nuevo.'
+      alert('An error has occurred while processing your request, please try again.'
         + (QUARK_DEBUG ? ("\nERROR:\n" + error_msg) : ''));
     },
 
     // Invocado cuando data.access_denied es true
     accessDenied: function(resource_url)
     {
-      alert('Acceso denegado a "' + resource_url + '"');
+      alert('Access denied to "' + resource_url + '"');
     },
 
     // Invocado cuando data.not_found es true
     notFound: function(resource_url)
     {
-      alert('Recurso "' + resource_url + '" no encontrado.');
+      alert('Resource "' + resource_url + '" not found.');
     },
 
     /**
@@ -59,7 +66,8 @@ var Quark = new (function()
      */
     error: function(jqXHR, text_status, error_thrown)
     {
-      alert("La solicitud no se pudo completar.\nSTATUS: " + text_status + "\nERROR: " + error_thrown);
+      alert("The request could not be completed.\nSTATUS: "
+        + text_status + "\nERROR: " + error_thrown);
     }
   };
 
@@ -109,12 +117,20 @@ var Quark = new (function()
         Settings.userSuccess(data.data, text_status, jqXHR);
       }
     };
+    
+    // Send `quark_ajax` with Settings.data
+    if (typeof Settings.data == 'string') {
+      Settings.data = 'quark_ajax=' + Math.random() + '&' + Settings.data;
+    } else if (typeof Settings.data == 'object') {
+      Settings.data['quark_ajax'] = Math.random();
+    }
+    
+    // Set the language to the request if needed.
+    if (QUARK_MULTILANG && Settings.lang == null) {
+      Settings.lang = Quark.Lang.getActualLang();
+    }
 
-    return $.ajax(_base_url
-      + (!QUARK_FRIENDLY_URL ? '?' : '')
-      + url
-      + (!QUARK_FRIENDLY_URL ? '&' : '?')
-      + 'quark_ajax=1&' + Math.random(), Settings);
+    return $.ajax(Quark.URL.getURL(url, Settings.lang), Settings);
   };
 
   this.setAJAXSettings = function(Settings)
@@ -128,12 +144,134 @@ var Quark = new (function()
   }
 
   /**
-   * Devuelve una URL valida, igual que QuarkURL::getURL();
-   * @param  string url
-   * @return string
+   * @deprecated This will be removed on version 3.6, use Quark.URL.getURL() instead.
    */
-  this.getURL = function(url)
+  this.getURL = function(url, lang)
   {
-    return _base_url + (!QUARK_FRIENDLY_URL ? '?' : '') + url;
+    return Quark.URL.getURL(url, lang);
   }
+  
+})();
+
+/**
+ * Object to work with URLs
+ */
+Quark.URL = new (function ()
+{
+  
+  var urls_with_lang_on_subdomain = [];
+  <?php foreach (Quark::getConfigVal('langs') as $lang_prefix): ?>
+    urls_with_lang_on_subdomain['<?php echo $lang_prefix ?>'] = <?php echo json_encode($this->QuarkURL->getBaseURL($lang_prefix)); ?>;
+  <?php endforeach; ?>
+  
+  /**
+   * Get base url with an optional language prefix
+   * Tail slash included!
+   *
+   * @param [String] lang
+   * @return [String]
+   */
+  this.getBaseURL = function (lang)
+  {
+    if (!QUARK_LANG_ON_SUBDOMAIN) {
+      // Return normal base URL
+      return <?php echo json_encode($this->QuarkURL->getBaseURL()); ?>;
+    } else {
+      // Return pre-defined base URL with lang on subdomain
+      if (!lang || urls_with_lang_on_subdomain[lang] == undefined
+      ) {
+        lang = Quark.Lang.getActualLang();
+      }
+      
+      return urls_with_lang_on_subdomain[lang];
+    }
+  },
+  
+  /**
+   * Get the full URL of url, with optional language prefix
+   * Tail slash included!
+   *
+   * @param [String] url
+   * @param [String] lang
+   * @return [String]
+   */
+  this.getURL = function (url, lang)
+  {
+    var base_url = this.getBaseURL(lang);
+    
+    // Assign default value to `url`
+    if (typeof url == 'undefined') {
+      url = '';
+    }
+    
+    // Prepend language prefix if needed.
+    if (QUARK_MULTILANG && !QUARK_LANG_ON_SUBDOMAIN) {
+      if (!lang || !Quark.Lang.isDefined(lang)) {
+        lang = Quark.Lang.getActualLang();
+      }
+      url = lang + '/' + url;
+    }
+    
+    // Replace sign '?' in url if friendly URLs are deactivated beacause when
+    // friendly URLs are deactivated the sign '?' is prepened automatically.
+    if (!QUARK_FRIENDLY_URL && url.indexOf('?') > -1) {
+      url = url.replace('?', '&');
+    }
+    
+    // Return well formed URL
+    return base_url + ((!QUARK_FRIENDLY_URL && url != '') ? '?' : '') + url;
+  }
+})();
+
+/**
+ * Object to work with defined languages
+ */
+Quark.Lang = new (function ()
+{
+  /** Defined language prefixes */
+  var langs = <?php echo json_encode(Quark::getConfigVal('langs')); ?>;
+  
+  /**
+   * Get actual language prefix
+   * @return [String]
+   */
+  this.getActualLang = function ()
+  {
+    return '<?php echo $this->QuarkURL->getPathInfo()->lang; ?>';
+  };
+  
+  /**
+   * Get defined language prefixes array
+   * @return [Array]
+   */
+  this.getDefinedLangs = function ()
+  {
+    return langs;
+  };
+  
+  /**
+   * Get default language prefix
+   * @return [String]
+   */
+  this.getDefaultLang = function ()
+  {
+    return langs[0];
+  };
+  
+  /**
+   * Check is `lang` exists on pre-defined language prefixes
+   * @param [String]
+   * @return [Boolean]
+   */
+  this.isDefined = function(lang)
+  {
+    for (i in langs) {
+      if (lang == langs[i]) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
 })();

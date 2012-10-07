@@ -266,9 +266,11 @@ class QuarkController
     $included = array();
 
     echo '<script type="text/javascript" src="'
-      , ($full_url ? $this->QuarkURL->getBaseURL() : '')
-      , (!QUARK_FRIENDLY_URL ? '?' : '')
-      , 'quark/quark-include-js"></script>';
+      , ($full_url
+          ? $this->QuarkURL->getURL('quark/quark-include-js')
+          : 'quark/quark-include-js'
+        )
+      , '"></script>';
 
     foreach($this->_js_files as $file){
       if(array_search($file, $included) === false){

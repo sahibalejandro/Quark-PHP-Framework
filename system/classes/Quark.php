@@ -28,7 +28,7 @@ class Quark
 
   private static $_called_action;
 
-  const VERSION = '3.5.2';
+  const VERSION = '3.5.3';
 
   /**
    * Bootstrap
@@ -38,7 +38,7 @@ class Quark
     ini_set('display_errors', 1);
 
     /**
-     * @deprecated Used for backward compatibilty
+     * @deprecated Used for backward compatibilty, will be removed on version 3.6
      */
     define('QUARK_VERSION', self::VERSION);
 
@@ -151,12 +151,15 @@ class Quark
     define('QUARK_APP_DIR'
       , '/' . $QuarkStr->cleanPath(dirname($_SERVER['SCRIPT_NAME'])));
     
+    define(
+      'QUARK_AJAX',
+      (isset($_POST['quark_ajax']) || isset($_GET['quark_ajax']))
+    );
     define('QUARK_DEBUG', self::$_config['debug']);
-    define('QUARK_AJAX', isset($_GET['quark_ajax']));
     define('QUARK_MULTILANG', !empty(self::$_config['langs']));
     define('QUARK_FRIENDLY_URL', isset($_GET['quark_path_info']));
     define('QUARK_LANG_ON_SUBDOMAIN', self::$_config['lang_on_subdomain']);
-
+    
     /* --------------------------------------------------
      * Magic quotes handle
      */
@@ -187,7 +190,6 @@ class Quark
     foreach (self::$_config['auto_includes'] as $include_file) {
       require_once 'includes/' . $include_file;
     }
-
 
     /* --------------------------------------------------
      * Instanciar controlador
@@ -243,6 +245,12 @@ class Quark
     unset($include_paths);
     unset($php_min_version);
     unset($QuarkStr);
+    
+    if (QUARK_AJAX) {
+      /* Unset this to avoid bugs if user are using sizeof()
+       * or count() over $_POST or $_GET */
+      unset($_POST['quark_ajax'], $_GET['quark_ajax']);
+    }
 
     // Call controller's method, pass the ball to developer!
     if (empty($PathInfo->arguments)) {
