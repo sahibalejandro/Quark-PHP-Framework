@@ -17,8 +17,6 @@ var QUARK_LANG_ON_SUBDOMAIN = <?php
 
 var Quark = new (function()
 {
-  var _base_url = <?php echo json_encode($this->QuarkURL->getBaseURL()) ?>;
-  
   var _AJAXSettings = {
     type: 'post',
     dataType: 'json',
