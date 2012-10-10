@@ -268,7 +268,7 @@ class QuarkController
     echo '<script type="text/javascript" src="'
       , ($full_url
           ? $this->QuarkURL->getURL('quark/quark-include-js')
-          : 'quark/quark-include-js'
+          : (!QUARK_FRIENDLY_URL ? '?' : ''). 'quark/quark-include-js'
         )
       , '"></script>';
 
