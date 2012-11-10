@@ -32,6 +32,10 @@ class QuarkURL
   public function getPathInfo()
   {
     if (self::$_PathInfo == null) {
+      
+      // Initialize object
+      self::$_PathInfo = new stdClass();
+      
       /*
        * Obtener el path info desde la query string
        */
