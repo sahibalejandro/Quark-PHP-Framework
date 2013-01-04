@@ -28,7 +28,7 @@ class Quark
 
   private static $_called_action;
 
-  const VERSION = '3.5.4';
+  const VERSION = '3.5.5';
 
   /**
    * Bootstrap
@@ -297,7 +297,10 @@ class Quark
       == false) {
       return $buffer;
     } else {
-      $error_messages = array_map('trim', $matches[1]);
+      $error_messages = array_map(
+        create_function('$e', 'return trim(strip_tags($e));'),
+        $matches[1]
+      );
 
       /* Log de mensajes de error */
       chdir(dirname($_SERVER['SCRIPT_FILENAME']));
