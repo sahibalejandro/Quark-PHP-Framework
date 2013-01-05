@@ -41,6 +41,7 @@ class QuarkURL
        */
       if (QUARK_FRIENDLY_URL) {
         $path_info = $_GET['quark_path_info'];
+        unset($_GET['quark_path_info']);
         
         // Point to "home/index" if path info is "index.php"
         if($path_info == 'index.php'){

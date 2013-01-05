@@ -348,12 +348,14 @@ class QuarkController
    * Add more values to the variables list which will be used when render views
    * 
    * @param array $vars_array Array key/value with the variables definition.
+   * @return QuarkController for method linking
    */
   protected function addViewVars($vars_array)
   {
     if (is_array($vars_array)) {
       $this->_view_vars = array_merge($this->_view_vars, $vars_array);
     }
+    return $this;
   }
 
   /**
