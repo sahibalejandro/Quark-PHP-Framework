@@ -10,7 +10,7 @@ GNU General Public License (http://www.gnu.org/licenses/gpl.html)
 <head>
   <meta charset="UTF-8">
   <title>404 Not found</title>
-  <link rel="stylesheet" type="text/css" href="system/public/css/quark.css">
+  <link rel="stylesheet" type="text/css" href="<?php echo $this->QuarkURL->getBaseURL(); ?>system/public/css/quark.css">
 </head>
 <body>
   <h2>404 - Not found.</h2>
