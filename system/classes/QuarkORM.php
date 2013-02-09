@@ -305,5 +305,8 @@ abstract class QuarkORM
    * 
    * @return QuarkORMQueryBuilder
    */
-  abstract public static function query();
+  public static function query()
+  {
+    return null;
+  }
 }
