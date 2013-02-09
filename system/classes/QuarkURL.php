@@ -50,7 +50,9 @@ class QuarkURL
       } else {
         $path_info = key($_GET);
       }
-      
+      $Str = new QuarkStr();
+      $path_info = $Str->cleanPath($path_info);
+
       /* Cargar rutas para modificar el path info */
       foreach (Quark::getRoutes() as $pattern => $new_route) {
         $pattern = "#^$pattern$#";
@@ -61,7 +63,7 @@ class QuarkURL
       }
 
       /* limpiar el path info */
-      $path_info = Quark::inst('QuarkStr')->cleanPath($path_info);
+      $path_info = $Str->cleanPath($path_info);
 
       /* crear el array con las partes del path info */
       if (empty($path_info)) {

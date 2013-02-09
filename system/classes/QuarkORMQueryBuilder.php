@@ -322,7 +322,11 @@ class QuarkORMQueryBuilder
     {
       if(!($value instanceof QuarkSQLExpression)){
         if($assignment == true) {
-          $placeholders[] = "`$key`=:$key";
+          if ($value === null) {
+            $placeholders[] = "`$key` IS NULL";
+          } else {
+            $placeholders[] = "`$key`=:$key";
+          }
         } else {
           $placeholders[] = ":$key";
         }
