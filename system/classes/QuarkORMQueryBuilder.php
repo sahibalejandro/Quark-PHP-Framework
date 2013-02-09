@@ -181,6 +181,11 @@ class QuarkORMQueryBuilder
       $where = implode(" AND ", $placeholders);
     }
 
+    // Remove "IS NULL" arguments
+    if (is_array($arguments)) {
+      $arguments = array_filter($arguments, create_function('$e', 'return ($e !== null);'));
+    }
+
     // Crear o completar el where
     $this->appendSQL('where'
       , !isset($this->_sql['where']) ? "WHERE ($where)"
@@ -349,7 +354,7 @@ class QuarkORMQueryBuilder
    * @return mixed Puede devolver un QuarkORM, un array(QuarkORM), el numero de
    *               filas afectadas, false o un array vacio.
    */
-  public function exec()
+  public function exec($dump_sql=false)
   {
     $ORMInfo = QuarkORMEngine::getORMInfo($this->_orm_class_name);
     // Formar el SQL concatenando las sentencias SQL en el orden correcto.
@@ -368,6 +373,10 @@ class QuarkORMQueryBuilder
       . (isset($this->_sql['orderby']) ? ' ' . $this->_sql['orderby'] : null)
       . (isset($this->_sql['limit'])   ? ' ' . $this->_sql['limit']   : null)
     ;
+
+    if ($dump_sql) {
+      Quark::dump($sql);
+    }
 
     $St = QuarkORMEngine::query($sql, $this->_arguments, $ORMInfo->connection);
 
