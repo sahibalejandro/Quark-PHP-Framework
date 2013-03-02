@@ -107,15 +107,15 @@ class QuarkURL
       );
 
       /* Valores por default para el path_info */
-      if (empty($path_info_parts[1])) {
+      if ($path_info_parts[1] == '') {
         $path_info_parts[1] = 'home';
       }
 
-      if (empty($path_info_parts[2])) {
+      if ($path_info_parts[2] == '') {
         $path_info_parts[2] = 'index';
       }
 
-      if (empty($path_info_parts[3])) {
+      if ($path_info_parts[3] == '') {
         $path_info_parts[3] = array();
       } else {
         $path_info_parts[3] = explode('/', $path_info_parts[3]);
