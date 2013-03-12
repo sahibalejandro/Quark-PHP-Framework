@@ -71,13 +71,12 @@ final class QuarkDBUtils
         // Crear la instancia PDO
         try {
           $PDO = new PDO('mysql:'
-              .'host='.$db_config[$connection]['host']
-              .';dbname='.$db_config[$connection]['database'],
-            $db_config[$connection]['user'],
-            $db_config[$connection]['password'],
-            array(
-              PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ));
+              .'host='.Quark::getDBConfig($connection, 'host')
+              .';dbname='.Quark::getDBConfig($connection, 'database'),
+            Quark::getDBConfig($connection, 'user'),
+            Quark::getDBConfig($connection, 'password'),
+            array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+          );
         } catch (PDOException $e) {
           throw new QuarkDBException(
             'Fail to create connection "'.$connection.'".',
@@ -88,7 +87,10 @@ final class QuarkDBUtils
 
         try {
           $PDOSt = $PDO->prepare('SET NAMES :names;');
-          $PDOSt->bindValue(':names',$db_config[$connection]['charset'], PDO::PARAM_STR);
+          $PDOSt->bindValue(':names',
+            Quark::getDBConfig($connection, 'charset'),
+            PDO::PARAM_STR
+          );
           $PDOSt->execute();
         } catch (PDOException $e) {
           throw new QuarkDBException(
