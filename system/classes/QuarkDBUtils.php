@@ -428,6 +428,38 @@ final class QuarkDBUtils
   }
 
   /**
+   * Devuelve un string con todas las columnas a seleccionar concatenadas por comas,
+   * con su respecitvo alias "AS", se le agrega el scope $class a las columnas sin
+   * scope.
+   * 
+   * @param array $columnas Lista de nombres de columnas o instancias QuarkSQLExpression
+   * @param string $class Class para el scope de tabla
+   * @return string
+   */
+  public static function buildSelectColumns($columns, $class)
+  {
+    // Agregar lista de columnas que se van a seleccionar
+    $select_columns = array();
+    foreach ($columns as $column) {
+      if ($column instanceof QuarkSQLExpression) {
+        // La columna es una expresion SQL
+        // Arreglar el scope del alias
+        $alias     = $column->getAlias();
+        $class_out = '';
+        QuarkDBUtils::buildColumnScope($alias, $class, $alias, $class_out);
+        $select_columns[] = $column->getExpression()
+          .' AS `'.$class_out::TABLE.'_'.$alias.'`';
+      } else {
+        // La columna es un nombre de columna normal
+        $select_columns[] = QuarkDBUtils::buildColumnSQL(
+          $column['column'], $column['class']
+        ).' AS `'.$column['class']::TABLE.'_'.$column['column'].'`';
+      }
+    }
+    return implode(',', $select_columns);
+  }
+
+  /**
    * Devuelve un array de nombres de columnas especificados en un string de columnas
    * separadas por coma $columns
    * 

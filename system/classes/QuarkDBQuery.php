@@ -130,16 +130,28 @@ final class QuarkDBQuery
   const QUERY_TYPE_DELETE = 8;
 
   /**
+   * Tipo de consulta SELECT COUNT(*)
+   * @var int
+   */
+  const QUERY_TYPE_COUNT = 16;
+
+  /**
+   * Tipo de consulta SELECT MAX(...) o SELECT MIN(...)
+   * @var int
+   */
+  const QUERY_TYPE_MIN_MAX = 32;
+
+  /**
    * Tipo de extracción de resultados: Un solo objeto o null si no existe.
    * @var int
    */
-  const FETCH_TYPE_OBJECT = 1;
+  const FETCH_TYPE_SINGLE = 1;
 
   /**
    * Tipo de extraccion de resultados: un array
    * @var int
    */
-  const FETCH_TYPE_ARRAY = 2;
+  const FETCH_TYPE_MANY = 2;
 
   public function __construct($class)
   {
@@ -175,7 +187,7 @@ final class QuarkDBQuery
    * @param int $fetch_type Tipo de fetch para el resultado
    * @return QuarkDBQuery
    */
-  public function select($columns = null, $fetch_type = self::FETCH_TYPE_ARRAY)
+  public function select($columns = null, $fetch_type = self::FETCH_TYPE_MANY)
   {
     $this->query_type = self::QUERY_TYPE_SELECT;
     $this->fetch_type = $fetch_type;
@@ -191,7 +203,7 @@ final class QuarkDBQuery
    */
   public function selectOne($columns = null)
   {
-    return $this->select($columns, self::FETCH_TYPE_OBJECT)->limit(1);
+    return $this->select($columns, self::FETCH_TYPE_SINGLE)->limit(1);
   }
 
   /**
@@ -502,6 +514,60 @@ final class QuarkDBQuery
   }
 
   /**
+   * Prepara la consulta para realizar un SELECT COUNT(*)
+   * 
+   * @return QuarkDBQuery
+   */
+  public function count()
+  {
+    $this->query_type = self::QUERY_TYPE_COUNT;
+    $this->fetch_type = self::FETCH_TYPE_SINGLE;
+
+    $this->addSelectColumns(array(
+      new QuarkSQLExpression('COUNT(*)', null, 'select_count')
+    ), $this->class);
+    return $this->asArray();
+  }
+
+  /**
+   * Prepara la consulta para realizar un MAX() o MIN() sobre las columnas deseadas.
+   * 
+   * @param mixed $columns Nombre de columas separadas por coma o array de columnas
+   * @return QuarkDBQuery
+   */
+  private function maxMin($columns, $func)
+  {
+    $this->query_type = self::QUERY_TYPE_MIN_MAX;
+    $this->fetch_type = self::FETCH_TYPE_SINGLE;
+
+    if (is_string($columns)) {
+      $columns = QuarkDBUtils::splitColumns($columns);
+    }
+
+    $select_columns = array();
+    foreach ($columns as $column) {
+      QuarkDBUtils::buildColumnScope($column, $this->class, $column, $class_scope);
+      $select_columns[] = new QuarkSQLExpression(
+        $func.'('.QuarkDBUtils::buildColumnSQL($column, $class_scope).')',
+        null,
+        $column
+      );
+    }
+    $this->addSelectColumns($select_columns, $this->class);
+    return $this->asArray();
+  }
+
+  public function max($columns)
+  {
+    return $this->maxMin($columns, 'MAX');
+  }
+
+  public function min($columns)
+  {
+    return $this->maxMin($columns, 'MIN');
+  }
+
+  /**
    * Devuelve la ultima fila insertada en la tabla, como un array asociativo.
    * Solo funciona si la tabla tiene por lo menos una columna AUTO_INCREMENT o
    * TIMESTAMP, devuelve null si no se puede obtener la ultima fila o no es
@@ -566,16 +632,20 @@ final class QuarkDBQuery
       $columns = QuarkDBUtils::splitColumns($columns);
     }
 
-    foreach ($columns as $column) {
-      $class_out = '';
-      QuarkDBUtils::buildColumnScope($column, $class, $column, $class_out);
+    foreach ($columns as $key => $column) {
+      if ($column instanceof QuarkSQLExpression) {
+        $this->select_columns[] = $column;
+      } else {
+        $class_out = '';
+        QuarkDBUtils::buildColumnScope($column, $class, $column, $class_out);
 
-      /* Necesitamos mantener separado 'column' y 'class' para poder generar el
-       * alias de la columna (column AS column_alias) en el metodo getSQL() */
-      $this->select_columns[] = array(
-        'column' => $column,
-        'class'  => $class_out,
-      );
+        /* Necesitamos mantener separado 'column' y 'class' para poder generar el
+         * alias de la columna (column AS column_alias) en el metodo getSQL() */
+        $this->select_columns[] = array(
+          'column' => $column,
+          'class'  => $class_out,
+        );
+      }
     }
   }
 
@@ -607,10 +677,10 @@ final class QuarkDBQuery
 
           // El resultado puede ser un solo objeto o un array de objetos
           switch($this->fetch_type) {
-            case self::FETCH_TYPE_ARRAY:
+            case self::FETCH_TYPE_MANY:
               $return = $rows;
               break;
-            case self::FETCH_TYPE_OBJECT:
+            case self::FETCH_TYPE_SINGLE:
               if(count($rows) == 0) {
                 $return = null;
               } else {
@@ -620,6 +690,24 @@ final class QuarkDBQuery
             default:
               trigger_error('QuarkDBQuery Undefined fetch type?', E_USER_ERROR);
               break;
+          }
+
+          break;
+        case self::QUERY_TYPE_COUNT:
+          // Solo devolver el numero devuelto por COUNT(*)
+          $return = (int)$PDOSt->fetchColumn(0);
+          break;
+        case self::QUERY_TYPE_MIN_MAX:
+          // Obtener la fila como un array asociativo
+          $return = $PDOSt->fetch(PDO::FETCH_ASSOC);
+          // Si la fila solo tiene un elemento, devolver solo ese elemento
+          if (sizeof($return) == 1) {
+            $return = array_values($return);
+            $return = array_shift($return);
+          } else {
+            /* La fila tiene varios elementos, filtramos las columnas para remover
+             * el prefijo de la tabla y devolvemos el array de columnas */
+            $return = self::filterColumns($return, $this->class);
           }
           break;
         case self::QUERY_TYPE_INSERT:
@@ -640,19 +728,19 @@ final class QuarkDBQuery
   }
 
   /**
+   * Alias de exec()
+   */
+  public function truff()
+  {
+    return $this->exec();
+  }
+
+  /**
    * Infla los resultados
    */
   private function buildResultRow($columns, $class, $as_array)
   {
-    $row = array();
-    foreach ($columns as $column => $value) {
-      // Filtrar las columnas que pertenecen solo a la tabla de $class
-      $table_prefix = $class::TABLE.'_';
-      if (strpos($column, $table_prefix) === 0) {
-        $column = str_replace($table_prefix, '', $column);
-        $row[$column] = $value;
-      }
-    }
+    $row = self::filterColumns($columns, $class);
 
     // Anidar las columnas de los JOIN
     foreach ($this->joins as $join) {
@@ -686,18 +774,11 @@ final class QuarkDBQuery
 
     switch($this->query_type) {
       case self::QUERY_TYPE_SELECT:
+      case self::QUERY_TYPE_COUNT:
+      case self::QUERY_TYPE_MIN_MAX:
         // Generar SELECT FROM
         $sql = 'SELECT';
-        
-        // Agregar lista de columnas que se van a seleccionar
-        $select_columns = array();
-        foreach ($this->select_columns as $column) {
-          $select_columns[] = QuarkDBUtils::buildColumnSQL(
-            $column['column'], $column['class']
-          ).' AS `'.$column['class']::TABLE.'_'.$column['column'].'`';
-        }
-        $sql .= ' '.implode(',', $select_columns);
-
+        $sql .= ' '.QuarkDBUtils::buildSelectColumns($this->select_columns, $class);
         $sql .= ' FROM `'.$class::TABLE.'`';
 
         // Generar JOIN
@@ -718,6 +799,8 @@ final class QuarkDBQuery
         break;
       case self::QUERY_TYPE_DELETE:
         $sql = 'DELETE FROM `'.$class::TABLE.'`';
+        break;
+        $sql = 'SELECT COUNT(*) FROM `'.$class::TABLE.'`';
         break;
       default:
         trigger_error('query type not defined.', E_USER_ERROR);
@@ -759,6 +842,20 @@ final class QuarkDBQuery
   private function addParams($params)
   {
     $this->params = array_merge($this->params, $params);
+  }
+
+  private function filterColumns($columns, $class)
+  {
+    $table_prefix = $class::TABLE.'_';
+    $row = array();
+    foreach ($columns as $column => $value) {
+      // Filtrar las columnas que pertenecen solo a la tabla de $class
+      if (strpos($column, $table_prefix) === 0) {
+        $column = str_replace($table_prefix, '', $column);
+      }
+      $row[$column] = $value;
+    }
+    return $row;
   }
 
   /**
