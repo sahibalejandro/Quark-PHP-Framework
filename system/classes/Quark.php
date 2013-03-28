@@ -37,11 +37,6 @@ class Quark
   {
     ini_set('display_errors', 1);
 
-    /**
-     * @deprecated Used for backward compatibilty, will be removed on version 3.6
-     */
-    define('QUARK_VERSION', self::VERSION);
-
     /* --------------------------------------------------
      * Validar versión minima de PHP 5.1
      */
