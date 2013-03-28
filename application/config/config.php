@@ -23,7 +23,7 @@
  * Session name, this must be diferent between each of your projects to avoid
  * session data overwriting.
  */
-$config['session_name'] = 'quark3';
+$config['session_name'] = 'quark3-development';
 
 /**
  * Default time zone for functions like strtotime()
@@ -112,28 +112,36 @@ $config['class_paths'] = array();
 
   DATABASE CONFIGURATION
   
-  "default" is the default connection to use, if you need to connect to more than one
-  database copy all $db_config directives and change "default" to the name you want
-  to that connection.
-  
+  "default" is the default connection to use, if you need to connect to more than one database copy all $db_config directives and change "default" to the name you want to that connection.
   "default" connection ALWAYS need to be there.
   
   =================================================================================*/
-$db_config['default'] = array(
-  // Database host name or IP
-  'host'     => '127.0.0.1',
-  // Database name
-  'database' => 'database_name',
-  // Database user
-  'user'     => 'user_name',
-  // Database password
-  'password' => 'user_password',
-  // Character encoding to use in the "SET NAMES" query
-  'charset'  => 'UTF8',
-  /* Driver specific options for the PDO object used by the ORM engine.
-   * See http://www.php.net/manual/es/pdo.setattribute.php */
-  'options'  => array(),
-);
+$db_config = array();
+/*
+ * Database host
+ */
+$db_config['default']['host'] = '127.0.0.1';
+/*
+ * Database name
+ */
+$db_config['default']['database'] = 'quark_orm_tests';
+/*
+ * Database user
+ */
+$db_config['default']['user'] = 'root';
+/*
+ * Database password
+ */
+$db_config['default']['password'] = 'rootsql';
+/*
+ * Driver specific options for the PDO object used by the ORM engine.
+ * See http://www.php.net/manual/es/pdo.setattribute.php
+ */
+$db_config['default']['options'] = array();
+/*
+ * Character encoding to use in the "SET NAMES" query
+ */
+$db_config['default']['charset'] = 'UTF8';
 
 /*===================================================================================
 

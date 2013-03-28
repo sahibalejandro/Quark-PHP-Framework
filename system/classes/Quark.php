@@ -18,17 +18,17 @@ class Quark
    * @see Quark::getConfigVal()
    * @var array
    */
-  private static $_config;
+  private static $config;
 
-  private static $_db_config;
+  private static $db_config;
 
-  private static $_routes;
+  private static $routes;
 
-  private static $_called_controller;
+  private static $called_controller;
 
-  private static $_called_action;
+  private static $called_action;
 
-  const VERSION = '3.5.9';
+  const VERSION = '3.6.0';
 
   /**
    * Bootstrap
@@ -66,7 +66,7 @@ class Quark
       }
     }
     
-    // Use SPL Autload if is available
+    // Use SPL Autload if is available, to let users register more __autoload functions.
     if (function_exists('spl_autoload_register')) {
       spl_autoload_register('quarkphp_autoload');
     } else {
@@ -99,9 +99,9 @@ class Quark
     if(is_file('application/config/config.php')){
       require 'application/config/config.php';
     }
-    self::$_config    = $config;
-    self::$_routes    = $routes;
-    self::$_db_config = $db_config;
+    self::$config    = $config;
+    self::$routes    = $routes;
+    self::$db_config = $db_config;
 
 
     /* --------------------------------------------------
@@ -109,33 +109,34 @@ class Quark
      */
     ini_set('error_prepend_string', '<quarkerror>');
     ini_set('error_append_string', '</quarkerror>');
-    error_reporting(self::$_config['error_reporting']);
-    date_default_timezone_set(self::$_config['time_zone']);
+    error_reporting(self::$config['error_reporting']);
+    date_default_timezone_set(self::$config['time_zone']);
 
-    if(self::$_config['lc_all'] !== null){
-      setlocale(LC_ALL, self::$_config['lc_all']);
+    if(self::$config['lc_all'] !== null){
+      setlocale(LC_ALL, self::$config['lc_all']);
     } else {
-      setlocale(LC_COLLATE  , self::$_config['lc_collate']);
-      setlocale(LC_CTYPE    , self::$_config['lc_ctype']);
-      setlocale(LC_MONETARY , self::$_config['lc_monetary']);
-      setlocale(LC_NUMERIC  , self::$_config['lc_numeric']);
-      setlocale(LC_TIME     , self::$_config['lc_time']);
+      setlocale(LC_COLLATE  , self::$config['lc_collate']);
+      setlocale(LC_CTYPE    , self::$config['lc_ctype']);
+      setlocale(LC_MONETARY , self::$config['lc_monetary']);
+      setlocale(LC_NUMERIC  , self::$config['lc_numeric']);
+      setlocale(LC_TIME     , self::$config['lc_time']);
 
       // Only available if PHP was compiled with libintl
-      if(isset(self::$_config['lc_messages'])){
-        setlocale(LC_MESSAGES , self::$_config['lc_messages']);
+      if(isset(self::$config['lc_messages'])){
+        setlocale(LC_MESSAGES , self::$config['lc_messages']);
       }
     }
 
     /* --------------------------------------------------
      * Agregar class paths para __autoload()
      */
-    self::$_config['class_paths'] = array_merge(array(
+    self::$config['class_paths'] = array_merge(array(
       'system/classes',
       'application/classes',
-      'application/orm',
+      'application/dbo',
+      'application/orm', // This is deprecated, and will be removed soon.
       'application/controllers',
-      'system/controllers'), self::$_config['class_paths']);
+      'system/controllers'), self::$config['class_paths']);
 
     /* --------------------------------------------------
      * Definir algunas clases
@@ -155,16 +156,16 @@ class Quark
       'QUARK_AJAX',
       (isset($_POST['quark_ajax']) || isset($_GET['quark_ajax']))
     );
-    define('QUARK_DEBUG', self::$_config['debug']);
-    define('QUARK_MULTILANG', !empty(self::$_config['langs']));
+    define('QUARK_DEBUG', self::$config['debug']);
+    define('QUARK_MULTILANG', !empty(self::$config['langs']));
     define('QUARK_FRIENDLY_URL', isset($_GET['quark_path_info']));
-    define('QUARK_LANG_ON_SUBDOMAIN', self::$_config['lang_on_subdomain']);
+    define('QUARK_LANG_ON_SUBDOMAIN', self::$config['lang_on_subdomain']);
     
     /* --------------------------------------------------
      * Magic quotes handle
      */
     if (function_exists('get_magic_quotes_gpc')) {
-      if (self::$_config['error_magic_quotes_gpc'] && get_magic_quotes_gpc()) {
+      if (self::$config['error_magic_quotes_gpc'] && get_magic_quotes_gpc()) {
         trigger_error(
           "Magic quotes is activated. To ignore this message set \$config['error_magic_quotes_gpc'] to false in config.php file.",
           E_USER_ERROR
@@ -185,9 +186,9 @@ class Quark
     /* --------------------------------------------------
      * Agregar archivos de "includes" automaticos.
      */
-    self::$_config['auto_includes'][] = 'jsonwrapper/jsonwrapper.php';
+    self::$config['auto_includes'][] = 'jsonwrapper/jsonwrapper.php';
 
-    foreach (self::$_config['auto_includes'] as $include_file) {
+    foreach (self::$config['auto_includes'] as $include_file) {
       require_once 'includes/' . $include_file;
     }
 
@@ -232,8 +233,8 @@ class Quark
     }
 
     // Guardar el controller name y action name que seran invocados
-    self::$_called_controller = $QuarkStr->unCamelCase($controller_name);
-    self::$_called_action     = $QuarkStr->unCamelCase($action_name);
+    self::$called_controller = $QuarkStr->unCamelCase($controller_name);
+    self::$called_action     = $QuarkStr->unCamelCase($action_name);
 
     /* --------------------------------------------------
      * Free memory before calling controller's method to
@@ -256,14 +257,7 @@ class Quark
     if (empty($PathInfo->arguments)) {
       $Controller->$action_name();
     } else {
-      $arguments = array();
-      foreach($PathInfo->arguments as $argument){
-        if(!is_numeric($argument)){
-          $argument = '"'.addslashes($argument).'"';
-        }
-        $arguments[] = $argument;
-      }
-      eval('$Controller->$action_name(' . implode(',', $arguments) . ');');
+      call_user_func_array(array($Controller, $action_name), $PathInfo->arguments);
     }
 
     // Send AJAX response if request is in AJAX mode
@@ -276,12 +270,12 @@ class Quark
 
   public static function getCalledControllerName()
   {
-    return self::$_called_controller;
+    return self::$called_controller;
   }
 
   public static function getCalledActionName()
   {
-    return self::$_called_action;
+    return self::$called_action;
   }
 
   /**
@@ -328,8 +322,8 @@ class Quark
       $PathInfo = Quark::inst('QuarkURL')->getPathInfo();
       $full_message = '['.date('d-M-Y H:i:s').']';
       $full_message .= PHP_EOL.'lang='. $PathInfo->lang;
-      $full_message .= ' controller='. self::$_called_controller;
-      $full_message .= ' action='. self::$_called_action;
+      $full_message .= ' controller='. self::$called_controller;
+      $full_message .= ' action='. self::$called_action;
       $full_message .= ' arguments='. implode(', ', $PathInfo->arguments);
       $full_message .= PHP_EOL.$message.PHP_EOL.PHP_EOL;
       file_put_contents('application/messages.log', $full_message, FILE_APPEND);
@@ -344,7 +338,7 @@ class Quark
    */
   public static function getConfigVal($key)
   {
-    return self::$_config[$key];
+    return self::$config[$key];
   }
 
   /**
@@ -353,16 +347,28 @@ class Quark
    */
   public static function getRoutes()
   {
-    return self::$_routes;
+    return self::$routes;
   }
 
   /**
-   * Devuelve el array de configuración $db_config
-   * @return array
+   * Devuelve el array de configuración $db_config si no se especifica $connection y
+   * $config. Si se especifica $connection y $config se devuelve el valor de la
+   * directiva de configuración deseada, si $connection no existe se usa "default".
+   * 
+   * @param string $connection Nombre de la conección
+   * @param string $config Nombre de la directiva
+   * @return array|string
    */
-  public static function getDBConfig()
+  public static function getDBConfig($connection = null, $config = null)
   {
-    return self::$_db_config;
+    if ($connection == null && $config == null) {
+      return self::$db_config;
+    } else {
+      if (!isset(self::$db_config[$connection][$config])) {
+        $connection = 'default';
+      }
+      return self::$db_config[$connection][$config];
+    }
   }
 
   /**

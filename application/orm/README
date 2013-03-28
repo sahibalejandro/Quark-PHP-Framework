@@ -1,1 +1,5 @@
 Put your QuarkORM classes here!
+
+IMPORTANT:
+  QuarkORM is deprecated, use QuarkDBObject instead.
+  Please read the documentation at http://docs.quarkphp.com/

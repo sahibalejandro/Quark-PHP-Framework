@@ -9,22 +9,87 @@
 
 class QuarkSQLExpression
 {
-  private $_expression;
-  private $_arguments;
+  /**
+   * Expresión SQL
+   * @var string
+   */
+  private $expression;
 
-  public function __construct($expression, $arguments = array())
+  /**
+   * Array de argumentos (key/value) que serán utilizados por esta expresión
+   * @var array
+   */
+  private $params;
+
+  /**
+   * Alias para la columna resultado de esta expresión
+   * @var string
+   */
+  private $alias;
+
+  /**
+   * Crea una instancia
+   * 
+   * @param string $expression Expresión SQL
+   * @param array $params Array (key/value) de argumentos para esta expresión
+   * @param string $alias Nombre de la columna resultado de esta expresión
+   */
+  public function __construct($expression, $params = null, $alias = null)
   {
-    $this->_expression = $expression;
-    $this->_arguments = $arguments;
+    if ($params == null) {
+      $params = array();
+    }
+
+    /* Asignar ID a los placeholders de los parametros, para evitar la colisión con
+     * otros placeholders de mismo nombre en la misma consulta. */
+    if (count($params) > 0) {
+      QuarkDBUtils::assignPlaceholdersID($expression, $params);
+    }
+
+    $this->expression = $expression;
+    $this->params     = $params;
+    $this->alias      = $alias;
   }
 
+  /**
+   * Devuelve el string de la expresión
+   * 
+   * @return string
+   */
   public function getExpression()
   {
-    return $this->_expression;
+    return $this->expression;
   }
 
+  /**
+   * Devuelve el alias que se usa para el resultado de la expresión cuando se utiliza
+   * en la lista de campos de selección.
+   * Nota: Este metodo no es utilizado en QuarkORM Engine.
+   * 
+   * @return string
+   */
+  public function getAlias()
+  {
+    return $this->alias;
+  }
+
+  /**
+   * Devuelve los argumentos que serán utilizados en esta expresión
+   * 
+   * @return array
+   */
+  public function getParams()
+  {
+    return $this->params;
+  }
+
+  /**
+   * Alias de getParams()
+   * @deprecated Usar getParams() en su lugar
+   * @return array
+   */
   public function getArguments()
   {
-    return $this->_arguments;
+    return $this->getParams();
   }
 }

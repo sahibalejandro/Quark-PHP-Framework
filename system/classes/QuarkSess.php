@@ -33,6 +33,13 @@ class QuarkSess
    * @var string
    */
   private static $_namespace = 'default';
+
+  /**
+   * Session ID que se utilizará al crear la sesión.
+   * @see QuarkSess::setSessionID()
+   * @var string
+   */
+  private static $sess_id = null;
   
   /**
    * Constructor
@@ -43,6 +50,12 @@ class QuarkSess
     $this->_cookie_life_time = Quark::getConfigVal('cookie_life_time');
     
     if (!isset($_SESSION)) {
+      
+      // Utilizar el ID especificado si es necesario
+      if (self::$sess_id != null) {
+        session_id(self::$sess_id);
+      }
+
       session_start();
     }
     
@@ -63,6 +76,32 @@ class QuarkSess
     
     // Try to send cookie to client.
     $this->_sendCookie(self::$_namespace);
+  }
+
+  /**
+   * Devuelve el ID de sesión utilizado
+   * 
+   * @return string
+   */
+  public function getSessID()
+  {
+    return session_id();
+  }
+
+  /**
+   * Define el session ID que será utilizado al crear la sesión, para que este
+   * metodo de resultado debe ser invocado antes de instanciar cualquier objeto
+   * de clase QuarkSess, por ejemplo en un script PHP dentro del directorio includes
+   * y agregando ese script a la lista $config['auto_includes'].
+   * 
+   * Es responsabilidad del programador manejar el ID en cuestion, a travez de las
+   * distintas solicitudes HTTP.
+   * 
+   * @param string $sess_id ID de la sesion
+   */
+  public static function setSessID($sess_id)
+  {
+    self::$sess_id = $sess_id;
   }
   
   /**
