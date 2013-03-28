@@ -133,14 +133,6 @@ class QuarkURL
   }
 
   /**
-   *  @deprecated Usar getURLToSwitchLang() en su lugar.
-   */
-  public function urlSwitchLang($l)
-  {
-    return $this->getURLToSwitchLang($l);
-  }
-
-  /**
    * Devuelve una URL con el prefijo de lenguaje $lang haciendo
    * referencia al controlador y accion actuales.
    *
@@ -267,21 +259,5 @@ class QuarkURL
      * Generar URL de salida.
      */
     return $base_url . ((!QUARK_FRIENDLY_URL && !empty($url)) ? '?' : '') . $url;
-  }
-  
-  /**
-   * @deprecated This will be removed on version 3.6, use getURL(...) instead.
-   */
-  public function url($url, $lang = null)
-  {
-    return $this->getURL($url, $lang);
-  }
-
-  /**
-   * @deprecated This will be removed on version 3.6, use getBaseURL(...) instead.
-   */
-  public function baseUrl($lang = null)
-  {
-      return $this->getBaseURL($lang);
   }
 }

@@ -85,7 +85,7 @@ class QuarkSQLExpression
 
   /**
    * Alias de getParams()
-   * @deprecated Usar getParams() en su lugar
+   * @deprecated Usar getParams() en su lugar, este metodo se removerá en v4
    * @return array
    */
   public function getArguments()
