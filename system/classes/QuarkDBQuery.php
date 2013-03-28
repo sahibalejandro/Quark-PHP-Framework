@@ -240,6 +240,7 @@ final class QuarkDBQuery
    * @param array $params Parametros de condición (igual que en where())
    * @param string $type Tipo de join (INNER, LEFT o RIGHT)
    * @return QuarkDBQuery
+   * @throws QuarkDBException
    */
   public function join(
     $class,
@@ -262,7 +263,10 @@ final class QuarkDBQuery
         list($class_a, $class_b) = $classes;
         break;
       default:
-        trigger_error('Class name only can have one or two class names', E_USER_ERROR);
+        throw new QuarkDBException(
+          __METHOD__.'() Class name only can have one or two class names',
+          QuarkDBException::ERROR_BAD_CLASS_NAME
+        );
         break;
     }
 
@@ -528,7 +532,7 @@ final class QuarkDBQuery
           $placeholder = ':'.QuarkDBUtils::getPlaceholderId();
           $params[$placeholder] = $value;
         }
-        
+
         $this->update_columns[] = $sql_column.'='.$placeholder;
       }
     }
@@ -686,6 +690,7 @@ final class QuarkDBQuery
   /**
    * Ejecuta la consulta generada
    * @return mixed
+   * @throws QuarkDBException
    */
   public function exec()
   {
@@ -722,7 +727,10 @@ final class QuarkDBQuery
               }
               break;
             default:
-              trigger_error('QuarkDBQuery Undefined fetch type?', E_USER_ERROR);
+              throw new QuarkDBException(
+                __METHOD__.'() QuarkDBQuery Undefined fetch type?',
+                QuarkDBException::ERROR_UNDEFINED_FETCH_TYPE
+              );
               break;
           }
 
@@ -757,7 +765,11 @@ final class QuarkDBQuery
       return $return;
 
     } catch (PDOException $e) {
-      trigger_error('QuarkDBQuery '.$e->getMessage(), E_USER_ERROR);
+      throw new QuarkDBException(
+        __METHOD__.'() Fail to execute query.',
+        QuarkDBException::ERROR_QUERY,
+        $e
+      );
     }
   }
 
@@ -797,6 +809,7 @@ final class QuarkDBQuery
    * Genera y devuelve el string SQL que será ejecutado por exec()
    * 
    * @return string
+   * @throws QuarkDBException
    */
   public function getSQL()
   {
@@ -837,7 +850,10 @@ final class QuarkDBQuery
         $sql = 'SELECT COUNT(*) FROM `'.$class::TABLE.'`';
         break;
       default:
-        trigger_error('query type not defined.', E_USER_ERROR);
+        throw new QuarkDBException(
+          __METHOD__.'() Query type not defined.',
+          QuarkDBException::ERROR_NO_QUERY_TYPE
+        );
         break;
     }
 

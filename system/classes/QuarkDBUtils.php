@@ -192,6 +192,7 @@ final class QuarkDBUtils
    * @param string $column Nombre de columna
    * @param string $class Clase para el scope de tabla
    * @return Object Información de la columan (SHOW COLUMNS FROM XYZ)
+   * @throws QuarkDBException
    */
   public static function getColumnInfo($column, $class)
   {
@@ -200,7 +201,10 @@ final class QuarkDBUtils
         return $ColumnInfo;
       }
     }
-    trigger_error(__METHOD__.'(): Column "'.$class.'.'.$column.'" not found.', E_USER_ERROR);
+    throw new QuarkDBException(
+      __METHOD__.'(): Column "'.$class.'.'.$column.'" not found.',
+      QuarkDBException::ERROR_COLUMN_NOT_FOUND
+    );
   }
 
   /**
