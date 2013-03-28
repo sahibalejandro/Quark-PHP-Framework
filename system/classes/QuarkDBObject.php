@@ -73,7 +73,7 @@ abstract class QuarkDBObject
       $class = get_class($this);
 
       // Objeto para realizar la consulta INSERT o UPDATE.
-      $Query = new QuarkDbQuery($class);
+      $Query = new QuarkDBQuery($class);
 
       // Extraer los valores de las columnas que van a ser insertados/actualizados
       $columns = array();
@@ -109,6 +109,43 @@ abstract class QuarkDBObject
       return $return;
     }
 
+  }
+
+  /**
+   * Devuelve una colección de instancias de $class que son hijas del registro
+   * actual, usando sus primary key como campos para enlazar.
+   * 
+   * @param string $class Nombre de la clase (de los hijos)
+   */
+  public function getChilds($class)
+  {
+    $parent_class = get_class($this);
+
+    $primary_key = QuarkDBUtils::getPrimaryKey($parent_class);
+
+    $where = array();
+    foreach ($primary_key as $pk) {
+      $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+    }
+    return $class::query()->select()->where($where);
+  }
+
+  /**
+   * Devuelve una instancia de $class que representa al padre del registro actual, si
+   * no existe el padre devuelve null
+   * 
+   * @param string $class Nombre de clase padre
+   * @return QuarkDBObject|null
+   */
+  public function getParent($class)
+  {
+    $primary_key = QuarkDBUtils::getPrimaryKey($class);
+    $parent_pk = array();
+    foreach ($primary_key as $pk) {
+      $field = $class::TABLE.'_'.$pk;
+      $parent_pk[$pk] = $this->$field;
+    }
+    return $class::query()->selectByPk($parent_pk);
   }
 
   /**

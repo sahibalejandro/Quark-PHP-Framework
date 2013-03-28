@@ -152,4 +152,24 @@ class QuarkStr
       array_slice(preg_split('/ +/', $string, $max_words + 1, null), 0, $max_words)
     );
   }
+
+  /**
+   * Hace un resumen de un texto, limitandolo a $max_words palabras.
+   * Cuando el texto tiene más de $max_words palabras se corta y se
+   * concatena $suffix al final del texto.
+   * Si el texto no tiene más de $max_words no se corta ni se agrega $suffix
+   * 
+   * @param string $text Texto
+   * @param int $max_words Número máximo de palabras
+   * @param string $suffix Sufijo para el corte
+   */
+  public function resumeText($text, $max_words = 10, $suffix = '...')
+  {
+    $words = str_word_count($text, 1);
+    if (count($words) <= $max_words) {
+      return $text;
+    } else {
+      return array_slice($words, 0, $max_words).$suffix;
+    }
+  }
 }

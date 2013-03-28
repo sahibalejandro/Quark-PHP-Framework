@@ -257,14 +257,7 @@ class Quark
     if (empty($PathInfo->arguments)) {
       $Controller->$action_name();
     } else {
-      $arguments = array();
-      foreach($PathInfo->arguments as $argument){
-        if(!is_numeric($argument)){
-          $argument = '"'.addslashes($argument).'"';
-        }
-        $arguments[] = $argument;
-      }
-      eval('$Controller->$action_name(' . implode(',', $arguments) . ');');
+      call_user_func_array(array($Controller, $action_name), $PathInfo->arguments);
     }
 
     // Send AJAX response if request is in AJAX mode

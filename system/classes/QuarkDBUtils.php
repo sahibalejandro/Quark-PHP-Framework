@@ -185,6 +185,14 @@ final class QuarkDBUtils
     return $value;
   }
 
+  /**
+   * Devuelve la información de una sola columna especificado por $column usando
+   * el scope de tabla de $class
+   * 
+   * @param string $column Nombre de columna
+   * @param string $class Clase para el scope de tabla
+   * @return Object Información de la columan (SHOW COLUMNS FROM XYZ)
+   */
   public static function getColumnInfo($column, $class)
   {
     foreach (self::getColumnsInfo($class) as $ColumnInfo) {
@@ -366,8 +374,16 @@ final class QuarkDBUtils
       /* Creamos la asignación, si $value es php null lo mapeamos a SQL NULL y lo
        * omitimos de la lista de parametros */
       if ($value !== null) {
-        $assignments[]            = $column_scoped.'='.$placeholder;
-        $params_out[$placeholder] = $value;
+        if ($value instanceof QuarkSQLExpression) {
+          $assignments[] = $column_scoped.'='.$value->getExpression();
+          $expression_params = $value->getParams();
+          if (is_array($expression_params)) {
+            $params_out = array_merge($params_out, $expression_params);
+          }
+        } else {
+          $assignments[]            = $column_scoped.'='.$placeholder;
+          $params_out[$placeholder] = $value;
+        }
       } else {
         $assignments[] = $column_scoped.' IS NULL';
       }
@@ -394,12 +410,24 @@ final class QuarkDBUtils
     }
 
     // Agregar ID a los placeholders
+    self::assignPlaceholdersID($condition, $params);
+  }
+
+  /**
+   * Asigna ID a los placeholders de $sql y $params, para evitar placeholders
+   * ambiguos.
+   * 
+   * @param string $sql Código SQL con placeholders
+   * @param array $params Lista de parametros (key/value) con los placeholders
+   */
+  public static function assignPlaceholdersID(&$sql, &$params)
+  {
     if (count($params) > 0) {
       $placeholder_id = self::getPlaceholderId();
       $params_out = array();
       foreach ($params as $placeholder => $value) {
         $new_placeholder = str_replace(':', ':'.$placeholder_id.'_', $placeholder);
-        $condition = str_replace($placeholder, $new_placeholder, $condition);
+        $sql = str_replace($placeholder, $new_placeholder, $sql);
         $params_out[$new_placeholder] = $value;
       }
       $params = $params_out;

@@ -17,9 +17,9 @@ class QuarkSQLExpression
 
   /**
    * Array de argumentos (key/value) que serán utilizados por esta expresión
-   * @var arguments
+   * @var array
    */
-  private $arguments;
+  private $params;
 
   /**
    * Alias para la columna resultado de esta expresión
@@ -31,16 +31,23 @@ class QuarkSQLExpression
    * Crea una instancia
    * 
    * @param string $expression Expresión SQL
-   * @param array $arguments Array (key/value) de argumentos para esta expresión
+   * @param array $params Array (key/value) de argumentos para esta expresión
    * @param string $alias Nombre de la columna resultado de esta expresión
    */
-  public function __construct($expression, $arguments = null, $alias = null)
+  public function __construct($expression, $params = null, $alias = null)
   {
-    $this->expression = $expression;
-    if ($arguments == null) {
-      $arguments = array();
+    if ($params == null) {
+      $params = array();
     }
-    $this->arguments  = $arguments;
+
+    /* Asignar ID a los placeholders de los parametros, para evitar la colisión con
+     * otros placeholders de mismo nombre en la misma consulta. */
+    if (count($params) > 0) {
+      QuarkDBUtils::assignPlaceholdersID($expression, $params);
+    }
+
+    $this->expression = $expression;
+    $this->params     = $params;
     $this->alias      = $alias;
   }
 
@@ -55,7 +62,8 @@ class QuarkSQLExpression
   }
 
   /**
-   * Devuelve el alias que se usa para el resultado de la expresión.
+   * Devuelve el alias que se usa para el resultado de la expresión cuando se utiliza
+   * en la lista de campos de selección.
    * Nota: Este metodo no es utilizado en QuarkORM Engine.
    * 
    * @return string
@@ -70,8 +78,18 @@ class QuarkSQLExpression
    * 
    * @return array
    */
+  public function getParams()
+  {
+    return $this->params;
+  }
+
+  /**
+   * Alias de getParams()
+   * @deprecated Usar getParams() en su lugar
+   * @return array
+   */
   public function getArguments()
   {
-    return $this->arguments;
+    return $this->getParams();
   }
 }

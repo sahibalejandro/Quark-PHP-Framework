@@ -207,6 +207,31 @@ final class QuarkDBQuery
   }
 
   /**
+   * Devuelve una instancia de QuarkDBObject que cumple con la condicion del
+   * primary key $pk (columnas de primary key), si no se encuentra el registro
+   * devuelve null.
+   * 
+   * @param array $pk
+   * @return QuarkDBObject|null
+   */
+  public function selectByPk($pk)
+  {
+    return $this->selectOne()->where($pk)->exec();
+  }
+
+  /**
+   * Devuelve una instancia de QuarkBDObject donde el campo "id" tenga el valor $id
+   * Si el registro no se encuentra devuelve null
+   * 
+   * @param mixed $id ID del registro
+   * @return QuarkDBObject|null
+   */
+  public function selectById($id)
+  {
+    return $this->selectByPk(array('id' => $id));
+  }
+
+  /**
    * Agrega un JOIN a la consulta
    * 
    * @param string $class Nombre de clase B
@@ -455,6 +480,9 @@ final class QuarkDBQuery
       // Agregar el parametro a la lista de parametros
       if ($value === null) {
         $placeholder = 'NULL';
+      } elseif ($value instanceof QuarkSQLExpression) {
+        $placeholder = $value->getExpression();
+        $params      = array_merge($params, $value->getParams());
       } else {
         $placeholder          = ':'.QuarkDBUtils::getPlaceholderId();
         $params[$placeholder] = $value;
@@ -493,8 +521,14 @@ final class QuarkDBQuery
       if ($value === null) {
         $this->update_columns[] = $sql_column.'=NULL';
       } else {
-        $placeholder = ':'.QuarkDBUtils::getPlaceholderId();
-        $params[$placeholder] = $value;
+        if ($value instanceof QuarkSQLExpression) {
+          $placeholder = $value->getExpression();
+          $params      = array_merge($params, $value->getParams());
+        } else {
+          $placeholder = ':'.QuarkDBUtils::getPlaceholderId();
+          $params[$placeholder] = $value;
+        }
+        
         $this->update_columns[] = $sql_column.'='.$placeholder;
       }
     }
@@ -847,14 +881,16 @@ final class QuarkDBQuery
   private function filterColumns($columns, $class)
   {
     $table_prefix = $class::TABLE.'_';
+
     $row = array();
     foreach ($columns as $column => $value) {
       // Filtrar las columnas que pertenecen solo a la tabla de $class
       if (strpos($column, $table_prefix) === 0) {
         $column = str_replace($table_prefix, '', $column);
+        $row[$column] = $value;
       }
-      $row[$column] = $value;
     }
+    
     return $row;
   }
 
