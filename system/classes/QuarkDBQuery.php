@@ -606,11 +606,25 @@ final class QuarkDBQuery
     return $this->asArray();
   }
 
+  /**
+   * Prepara la consulta para realizar un MAX(...) sobre las columnas especificadas
+   * por $columns.
+   *
+   * @param mixed $columns Array de columnas o string de columnas separadas por coma
+   * @return QuarkDBQuery
+   */
   public function max($columns)
   {
     return $this->maxMin($columns, 'MAX');
   }
 
+  /**
+   * Prepara la consulta para realizar un MIN(...) sobre las columnas especificadas
+   * por $columns.
+   *
+   * @param mixed $columns Array de columnas o string de columnas separadas por coma
+   * @return QuarkDBQuery
+   */
   public function min($columns)
   {
     return $this->maxMin($columns, 'MIN');
@@ -657,7 +671,7 @@ final class QuarkDBQuery
       return null;
     } else {
       $QuarkDBObject = new $this->class();
-      $QuarkDBObject->fillFromArray($row);
+      $QuarkDBObject->inflate($row);
       return $QuarkDBObject;
     }
   }
@@ -809,7 +823,7 @@ final class QuarkDBQuery
     // Crear la instancia de QuarkDBObject si es necesario
     if (!$as_array) {
       $QuarkDBObject = new $class();
-      $QuarkDBObject->fillFromArray($row);
+      $QuarkDBObject->inflate($row);
       $row = $QuarkDBObject;
     }
 
@@ -905,6 +919,14 @@ final class QuarkDBQuery
     $this->params = array_merge($this->params, $params);
   }
 
+  /**
+   * Extrae de $columns solo los elementos que coinciden con las columnas de la tabla
+   * especificada por $class::TABLE y los devuelve.
+   *
+   * @param array $columns Lista de columnas (key/value) de varias tablas mezcladas
+   * @param string $class Clase para el scope de la tabla
+   * @return array Lista de columnas (key/value) solo con las columnas de la tabla
+   */
   private function filterColumns($columns, $class)
   {
     $table_prefix = $class::TABLE.'_';
@@ -931,6 +953,12 @@ final class QuarkDBQuery
     return $this->params;
   }
 
+  /**
+   * Prepara la consulta para devolver arrays asociativos en lugar de instancias
+   * de QuarkDBObject
+   *
+   * @return QuarkDBQuery
+   */
   public function asArray()
   {
     $this->results_as_array = true;
