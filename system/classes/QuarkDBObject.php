@@ -103,7 +103,7 @@ abstract class QuarkDBObject
        * las propiedades de este objeto, es necesario recargar desde la DB */
       $row = $Query->getLastRow();
       if ($row != null) {
-        $this->fillFromArray($row);
+        $this->inflate($row);
       }
 
       return $return;
@@ -168,16 +168,21 @@ abstract class QuarkDBObject
   }
 
   /**
-   * Llena las propiedades del objeto a partir de un array
+   * Este metodo crea/actualiza las propiedades que corresponden a las columnas
+   * de la tabla enlazada al objeto a partir de un array asociativo.
+   *
+   * Si es necesario que las clases hijas hagan alguna tarea cuando las columnas
+   * esten listas se debe hacer override de este metodo en lugar de hacer override
+   * del metodo __construct();
    * 
    * @param array $columns Array asociativo con los nuevos valores
    */
-  public function fillFromArray($columns)
+  public function inflate($columns)
   {
     foreach ($columns as $column => $value) {
       if (is_array($value)) {
         $QuarkDBObject = new $column();
-        $QuarkDBObject->fillFromArray($value);
+        $QuarkDBObject->inflate($value);
         $value = $QuarkDBObject;
         /**
          * TODO:
