@@ -1,4 +1,4 @@
-QuarkPHP Framework
+QuarkPHP Framework (3.6.0)
 ==========
 
 MVC + ORM based framework to fast building web applications  
