@@ -460,6 +460,17 @@ final class QuarkDBQuery
   }
 
   /**
+   * Similar a limit(), pero usado para paginas de resultados
+   *
+   * @param int $page Número de pagina (1-indexed)
+   * @param int $rows_per_page Filas por pagina
+   */
+  public function page($page, $rows_per_page)
+  {
+    return $this->limit(($page - 1) * $rows_per_page, $rows_per_page);
+  }
+
+  /**
    * Prepara la consulta para realizar un INSERT sobre la tabla
    * 
    * @param string $columns Columnas a insertar
