@@ -169,7 +169,7 @@ class QuarkStr
     if (count($words) <= $max_words) {
       return $text;
     } else {
-      return array_slice($words, 0, $max_words).$suffix;
+      return implode(' ', array_slice($words, 0, $max_words)).$suffix;
     }
   }
 }
