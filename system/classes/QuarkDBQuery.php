@@ -935,7 +935,7 @@ final class QuarkDBQuery
     foreach ($columns as $column => $value) {
       // Filtrar las columnas que pertenecen solo a la tabla de $class
       if (strpos($column, $table_prefix) === 0) {
-        $column = str_replace($table_prefix, '', $column);
+        $column = substr($column, strlen($table_prefix));
         $row[$column] = $value;
       }
     }
