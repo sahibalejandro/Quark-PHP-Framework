@@ -1,6 +1,6 @@
 /**
- * Quark 3 PHP Framework
- * Copyright (C) 2011 Sahib Alejandro Jaramillo Leo
+ * QuarkPHP Framework
+ * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
  *
  * Este script es procesado como si fuera una vista
  * en QuarkController::quarkIncludeJs();

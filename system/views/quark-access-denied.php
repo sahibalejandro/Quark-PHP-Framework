@@ -1,6 +1,6 @@
 <!--
 QuarkPHP Framework
-Copyright (C) 2012 Sahib Alejandro Jaramillo Leo
+Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
 
 http://quarkphp.com
 GNU General Public License (http://www.gnu.org/licenses/gpl.html)
