@@ -1,7 +1,7 @@
 <?php
 /**
  * QuarkPHP Framework
- * Copyright (C) 2012 Sahib Alejandro Jaramillo Leo
+ * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
  *
  * @link http://quarkphp.com
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
@@ -28,7 +28,7 @@ class Quark
 
   private static $called_action;
 
-  const VERSION = '3.6.1';
+  const VERSION = '3.6.2';
 
   /**
    * Bootstrap

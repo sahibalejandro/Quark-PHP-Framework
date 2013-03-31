@@ -1,4 +1,12 @@
 <?php
+/**
+ * QuarkPHP Framework
+ * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
+ * 
+ * @link http://quarkphp.com
+ * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ */
+
 final class QuarkDBQuery
 {
   /**
@@ -930,7 +938,6 @@ final class QuarkDBQuery
   private function filterColumns($columns, $class)
   {
     $table_prefix = $class::TABLE.'_';
-
     $row = array();
     foreach ($columns as $column => $value) {
       // Filtrar las columnas que pertenecen solo a la tabla de $class

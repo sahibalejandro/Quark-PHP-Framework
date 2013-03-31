@@ -1,4 +1,12 @@
 <?php
+/**
+ * QuarkPHP Framework
+ * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
+ * 
+ * @link http://quarkphp.com
+ * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ */
+
 abstract class QuarkDBObject
 {
   /**
@@ -127,7 +135,21 @@ abstract class QuarkDBObject
     foreach ($primary_key as $pk) {
       $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
     }
+    
     return $class::query()->select()->where($where);
+  }
+
+  public function countChilds($class)
+  {
+    $parent_class = get_class($this);
+
+    $primary_key = QuarkDBUtils::getPrimaryKey($parent_class);
+
+    $where = array();
+    foreach ($primary_key as $pk) {
+      $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+    }
+    return $class::query()->count()->where($where);
   }
 
   /**
