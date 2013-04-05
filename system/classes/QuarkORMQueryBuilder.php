@@ -145,7 +145,7 @@ class QuarkORMQueryBuilder
   public function update($key_value_pairs)
   {
     $ORMInfo = QuarkORMEngine::getORMInfo($this->_orm_class_name);
-    $this->expandPlaceholders($key_value_pairs, $placeholders, $arguments, true);
+    $this->expandPlaceholders($key_value_pairs, $placeholders, $arguments, true, true);
     $placeholders = implode(',', $placeholders);
     $this->appendSQL('update', "UPDATE `{$ORMInfo->table}` SET $placeholders"
       , $arguments);
@@ -318,7 +318,7 @@ class QuarkORMQueryBuilder
    * para ser utilizados en un query generado.
    */
   protected function expandPlaceholders($fields, &$placeholders, &$arguments,
-    $assignment = false)
+    $assignment = false, $is_update = false)
   {
     // Inicializar variables de salida
     $placeholders = $arguments = array();
@@ -328,7 +328,11 @@ class QuarkORMQueryBuilder
       if(!($value instanceof QuarkSQLExpression)){
         if($assignment == true) {
           if ($value === null) {
-            $placeholders[] = "`$key` IS NULL";
+            if ($is_update) {
+              $placeholders[] = "`$key` = NULL";
+            } else {
+              $placeholders[] = "`$key` IS NULL";
+            }
           } else {
             $placeholders[] = "`$key`=:$key";
           }
