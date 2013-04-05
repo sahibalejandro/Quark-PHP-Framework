@@ -1,4 +1,11 @@
-QuarkPHP Framework (3.6.0)
+WARNING
+=======
+**This is the branch ONLY of 3.5.x UPDATES, 3.6.x is not fully retro-compatible with 3.5.x**
+
+Please don't update directly from 3.5.x to 3.6.x, unless you know exactly what functions/methods/etc. was deprecated and you tune-up your code for the new version.
+
+
+QuarkPHP Framework (3.5.x)
 ==========
 
 MVC + ORM based framework to fast building web applications  
