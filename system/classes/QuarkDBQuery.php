@@ -30,10 +30,10 @@ final class QuarkDBQuery
   private $fetch_type;
 
   /**
-   * Define si los resultados serán arrays o instancias de QuarkDBObject
+   * Define si los resultados serán objetos anonimos o instancias de QuarkDBObject
    * @var bool
    */
-  private $results_as_array;
+  private $results_as_anon_obj;
 
   /**
    * Lista de columnas para SELECT
@@ -176,7 +176,7 @@ final class QuarkDBQuery
   {
     $this->query_type       = 0; 
     $this->fetch_type       = 0;
-    $this->results_as_array = false;
+    $this->results_as_anon_obj = false;
     $this->select_columns   = array();
     $this->insert_columns   = array();
     $this->update_columns   = array();
@@ -195,12 +195,30 @@ final class QuarkDBQuery
    * @param int $fetch_type Tipo de fetch para el resultado
    * @return QuarkDBQuery
    */
-  public function select($columns = null, $fetch_type = self::FETCH_TYPE_MANY)
+  public function find($columns = null, $fetch_type = self::FETCH_TYPE_MANY)
   {
     $this->query_type = self::QUERY_TYPE_SELECT;
     $this->fetch_type = $fetch_type;
+
+    /* Asegurar que $columns tenga el primary key, ya que es necesario para
+     * futuras llamadas a save() de QuarkDBObject */
+    if (!$this->results_as_anon_obj && $columns != null) {
+      $columns = QuarkDBUtils::addPkColumns($columns, $this->class);
+    }
+
     $this->addSelectColumns($columns, $this->class);
     return $this;
+  }
+
+  /**
+   * Alias de find(), pero el resultado serán objetos anonimos.
+   * 
+   * @return QuarkDBQuery
+   */
+  public function select($columns = null)
+  {
+    $this->results_as_anon_obj = true;
+    return $this->find($columns);
   }
 
   /**
@@ -209,9 +227,20 @@ final class QuarkDBQuery
    * @param mixed $columns Array de columnas o string de columnas separadas por coma
    * @return QuarkDBQuery
    */
+  public function findOne($columns = null)
+  {
+    return $this->find($columns, self::FETCH_TYPE_SINGLE)->limit(1);
+  }
+
+  /**
+   * Alias de findOne(), pero el resultado serán un objeto anonimo.
+   * 
+   * @return QuarkDBQuery
+   */
   public function selectOne($columns = null)
   {
-    return $this->select($columns, self::FETCH_TYPE_SINGLE)->limit(1);
+    $this->results_as_anon_obj = true;
+    return $this->findOne($columns);
   }
 
   /**
@@ -222,9 +251,20 @@ final class QuarkDBQuery
    * @param array $pk
    * @return QuarkDBObject|null
    */
+  public function findByPk($pk)
+  {
+    return $this->findOne()->where($pk)->exec();
+  }
+
+  /**
+   * Alias de findByPk() pero el resultado será un objeto anonimo
+   * 
+   * @return QuarkDBQuery
+   */
   public function selectByPk($pk)
   {
-    return $this->selectOne()->where($pk)->exec();
+    $this->results_as_anon_obj = true;
+    return $this->findByPk($pk);
   }
 
   /**
@@ -234,9 +274,20 @@ final class QuarkDBQuery
    * @param mixed $id ID del registro
    * @return QuarkDBObject|null
    */
+  public function findById($id)
+  {
+    return $this->findByPk(array('id' => $id));
+  }
+
+  /**
+   * Alias de findById() pero el resultado será un objeto anonimo
+   * 
+   * @return QuarkDBQuery
+   */
   public function selectById($id)
   {
-    return $this->selectByPk(array('id' => $id));
+    $this->results_as_anon_obj = true;
+    return $this->findById($id);
   }
 
   /**
@@ -497,8 +548,8 @@ final class QuarkDBQuery
       QuarkDBUtils::buildColumnScope($column, $this->class, $column, $class);
       $this->insert_columns[] = QuarkDBUtils::buildColumnSQL($column, $class);
 
-      // Obtener el posible valor adecuado para esta columna
-      $value = QuarkDBUtils::getPossibleValue($column, $class, $value);
+      // Obtener el formato correcto para $value
+      $value = QuarkDBUtils::formatValue($value, $column, $class);
 
       // Agregar el parametro a la lista de parametros
       if ($value === null) {
@@ -537,8 +588,7 @@ final class QuarkDBQuery
       QuarkDBUtils::buildColumnScope($column, $this->class, $column, $class);
       $sql_column = QuarkDBUtils::buildColumnSQL($column, $class); 
 
-      // Obtener el posible valor para la columna
-      $value = QuarkDBUtils::getPossibleValue($column, $class, $value);
+      $value = QuarkDBUtils::formatValue($value, $column, $class);
 
       // Crear la sentencia SQL de asignación para la columna
       if ($value === null) {
@@ -646,7 +696,7 @@ final class QuarkDBQuery
    * 
    * @return array
    */
-  public function getLastRow()
+  public function getLastRow($columns = null)
   {
     // Buscar la columna usable para ordenar
     $usable_column = null;
@@ -663,7 +713,7 @@ final class QuarkDBQuery
       // No se puede buscar la ultima fila
       return null;
     } else {
-      return $this->selectOne()->asArray()->orderBy($usable_column, 'DESC')->exec();
+      return $this->selectOne($columns)->orderBy($usable_column, 'DESC')->exec();
     }
   }
 
@@ -744,7 +794,7 @@ final class QuarkDBQuery
 
           // Separar las columnas para cada fila
           foreach ($rows as &$row) {
-            $row = $this->buildResultRow($row, $this->class, $this->results_as_array);
+            $row = $this->buildResultRow($row, $this->class, $this->results_as_anon_obj);
           }
 
           // El resultado puede ser un solo objeto o un array de objetos
@@ -817,19 +867,21 @@ final class QuarkDBQuery
   /**
    * Infla los resultados
    */
-  private function buildResultRow($columns, $class, $as_array)
+  private function buildResultRow($columns, $class, $as_anon_obj)
   {
     $row = self::filterColumns($columns, $class);
 
     // Anidar las columnas de los JOIN
     foreach ($this->joins as $join) {
       if ($join['class_a'] == $class) {
-        $row[$join['class_b']] = self::buildResultRow($columns, $join['class_b'], $as_array);
+        $row[$join['class_b']] = self::buildResultRow($columns, $join['class_b'], $as_anon_obj);
       }
     }
 
     // Crear la instancia de QuarkDBObject si es necesario
-    if (!$as_array) {
+    if ($as_anon_obj) {
+      $row = (object)$row;
+    } else {
       $QuarkDBObject = new $class();
       $QuarkDBObject->inflate($row);
       $row = $QuarkDBObject;
@@ -958,17 +1010,5 @@ final class QuarkDBQuery
   public function getParams()
   {
     return $this->params;
-  }
-
-  /**
-   * Prepara la consulta para devolver arrays asociativos en lugar de instancias
-   * de QuarkDBObject
-   *
-   * @return QuarkDBQuery
-   */
-  public function asArray()
-  {
-    $this->results_as_array = true;
-    return $this;
   }
 }
