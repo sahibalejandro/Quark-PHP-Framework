@@ -129,8 +129,9 @@ abstract class QuarkDBObject
    * actual, usando sus primary key como campos para enlazar.
    * 
    * @param string $class Nombre de la clase (de los hijos)
+   * @param array|string $columns Lista de columnas a seleccionar
    */
-  public function getChilds($class)
+  public function getChilds($class, $columns = null)
   {
     if ($this->isNew()) {
       return array();
@@ -143,7 +144,7 @@ abstract class QuarkDBObject
         $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
       }
       
-      return $class::query()->find()->where($where);
+      return $class::query()->find($columns)->where($where);
     }
   }
 
@@ -169,10 +170,11 @@ abstract class QuarkDBObject
    * no existe el padre devuelve null
    * 
    * @param string $class Nombre de clase padre
+   * @param array|string $columns Lista de columnas, todas si no se especifica.
    * @return QuarkDBObject|null
    * @throws QuarkDBException
    */
-  public function getParent($class)
+  public function getParent($class, $columns = null)
   {
     /* Obtener la lista de columnas que forman el primary key de la tabla padre y
      * con esta lista formar los valores del primary key que será utilizado con
@@ -186,14 +188,15 @@ abstract class QuarkDBObject
         $parent_pk[$pk] = $this->$related_column;
       } else {
         throw new QuarkDBException(
-          __METHOD__.'() Column property '.$related_column.' is missing.',
+          __METHOD__.'() Property "'.$related_column
+          .'" is not defined in the instance of "'.get_class($this).'".',
           QuarkDBException::ERROR_MISSING_PROPERTY
         );
         break;
       }
     }
 
-    return $class::query()->findByPk($parent_pk);
+    return $class::query()->findByPk($parent_pk, $columns);
   }
 
   /**

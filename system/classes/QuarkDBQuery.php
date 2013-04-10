@@ -202,7 +202,7 @@ final class QuarkDBQuery
 
     /* Asegurar que $columns tenga el primary key, ya que es necesario para
      * futuras llamadas a save() de QuarkDBObject */
-    if (!$this->results_as_anon_obj && $columns != null) {
+    if ($columns != null && !$this->results_as_anon_obj) {
       $columns = QuarkDBUtils::addPkColumns($columns, $this->class);
     }
 
@@ -248,23 +248,26 @@ final class QuarkDBQuery
    * primary key $pk (columnas de primary key), si no se encuentra el registro
    * devuelve null.
    * 
-   * @param array $pk
+   * @param array $pk Array asociativo que forma el primary key
+   * @param array|string $columns Lista de columnas, todas si no se especifica
    * @return QuarkDBObject|null
    */
-  public function findByPk($pk)
+  public function findByPk($pk, $columns = null)
   {
-    return $this->findOne()->where($pk)->exec();
+    return $this->findOne($columns)->where($pk)->exec();
   }
 
   /**
    * Alias de findByPk() pero el resultado será un objeto anonimo
    * 
+   * @param array $pk Array asociativo que forma el primary key
+   * @param array|string $columns Lista de columnas, todas si no se especifica
    * @return QuarkDBQuery
    */
-  public function selectByPk($pk)
+  public function selectByPk($pk, $columns = null)
   {
     $this->results_as_anon_obj = true;
-    return $this->findByPk($pk);
+    return $this->findByPk($pk, $columns);
   }
 
   /**
@@ -272,9 +275,10 @@ final class QuarkDBQuery
    * Si el registro no se encuentra devuelve null
    * 
    * @param mixed $id ID del registro
+   * @param array|string $columns Lista de columnas, todas si no se especifica
    * @return QuarkDBObject|null
    */
-  public function findById($id)
+  public function findById($id, $columns = null)
   {
     return $this->findByPk(array('id' => $id));
   }
@@ -282,12 +286,14 @@ final class QuarkDBQuery
   /**
    * Alias de findById() pero el resultado será un objeto anonimo
    * 
+   * @param mixed $id ID del registro
+   * @param array|string $columns Lista de columnas, todas si no se especifica
    * @return QuarkDBQuery
    */
-  public function selectById($id)
+  public function selectById($id, $columns = null)
   {
     $this->results_as_anon_obj = true;
-    return $this->findById($id);
+    return $this->findById($id, $columns);
   }
 
   /**
@@ -327,6 +333,11 @@ final class QuarkDBQuery
           QuarkDBException::ERROR_BAD_CLASS_NAME
         );
         break;
+    }
+
+    // Asegurarnos que no falta el primary key en la lista de columnas
+    if ($columns != null && !$this->results_as_anon_obj) {
+      $columns = QuarkDBUtils::addPkColumns($columns, $class_b);
     }
 
     // Agregar las columnas de la clase B a la lista de columnas de seleccion
@@ -633,7 +644,8 @@ final class QuarkDBQuery
     $this->addSelectColumns(array(
       new QuarkSQLExpression('COUNT(*)', null, 'select_count')
     ), $this->class);
-    return $this->asArray();
+    
+    return $this;
   }
 
   /**
