@@ -16,21 +16,6 @@ abstract class QuarkDBObject
    */
   private $qdbo_error_msg;
 
-  public function __construct()
-  {
-    $class = get_class($this);
-    foreach (QuarkDBUtils::getColumns($class) as $column) {
-      if (!isset($this->$column)) {
-        $this->$column = null;
-        /**
-         * TODO:
-         * Verificar que tan eficiente es utilizar la siguiente linea.
-         * $this->$column = QuarkDBUtils::getPossibleValue($column, $class, null);
-         */
-      }
-    }
-  }
-
   /**
    * Este metodo se invoca dentro de save(), si el resultado es true se guardan
    * los datos, de lo contrario no se guardan.
@@ -85,18 +70,36 @@ abstract class QuarkDBObject
 
       // Extraer los valores de las columnas que van a ser insertados/actualizados
       $columns = array();
+
       foreach (QuarkDBUtils::getColumns($class) as $column) {
-        $columns[$column] = $this->$column;
+        if (property_exists($this, $column)) {
+          $columns[$column] = $this->$column;
+        }
       }
 
-      // ¿Crear nuevo o actualizar?
+      /* ¿Crear nuevo o actualizar?
+       * Despues de insertar/actualizar los datos hay que recargarlos desde la
+       * tabla, ya que los datos guardados en la tabla pueden ser diferentes
+       * a los que estan actualmente en el objeto, por ejemplo los datos tipo
+       * date o datetime */
 
       if ($this->isNew()) {
         // Insertar datos
         if ($Query->insert($columns)->exec() == 0) {
           $this->setErrorMsg('The new record was not inserted.');
-          // Cambiar el valor de retorno a false
+          // Como al parecer no se guardaron los datos, devolvemos false.
           $return = false;
+        } else {
+          /* Actualizar este objeto con los datos insertados en la tabla, además
+           * nos aseguramos de traer su primary key */
+          $last_row_columns = array_keys($columns);
+          $last_row_columns = QuarkDBUtils::addPkColumns($last_row_columns, $class);
+
+          $row = $Query->getLastRow($last_row_columns);
+
+          if ($row != null) {
+            $this->inflate($row);
+          }
         }
       } else {
         // Actualizar datos, necesitamos el primary key para el WHERE
@@ -104,14 +107,16 @@ abstract class QuarkDBObject
         foreach (QuarkDBUtils::getPrimaryKey($class) as $pk) {
           $primary_key[$pk] = $this->$pk;
         }
-        $Query->update($columns)->where($pk)->exec();
-      }
+        $Query->update($columns)->where($primary_key);
+        //Quark::dump($Query->getSQL(), $Query->getParams());
+        $Query->exec();
 
-      /* Los valores almacenados en la tabla pueden ser diferentes de los valores en
-       * las propiedades de este objeto, es necesario recargar desde la DB */
-      $row = $Query->getLastRow();
-      if ($row != null) {
-        $this->inflate($row);
+        // Actualizar este objeto con los datos insertados en la tabla
+        $Row = $Query->selectOne(array_keys($columns))->where($primary_key)->exec();
+
+        if ($Row != null) {
+          $this->inflate($Row);
+        }
       }
 
       return $return;
@@ -124,32 +129,40 @@ abstract class QuarkDBObject
    * actual, usando sus primary key como campos para enlazar.
    * 
    * @param string $class Nombre de la clase (de los hijos)
+   * @param array|string $columns Lista de columnas a seleccionar
    */
-  public function getChilds($class)
+  public function getChilds($class, $columns = null)
   {
-    $parent_class = get_class($this);
+    if ($this->isNew()) {
+      return array();
+    } else {
+      $parent_class = get_class($this);
+      $primary_key  = QuarkDBUtils::getPrimaryKey($parent_class);
+      $where        = array();
 
-    $primary_key = QuarkDBUtils::getPrimaryKey($parent_class);
-
-    $where = array();
-    foreach ($primary_key as $pk) {
-      $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+      foreach ($primary_key as $pk) {
+        $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+      }
+      
+      return $class::query()->find($columns)->where($where);
     }
-    
-    return $class::query()->select()->where($where);
   }
 
   public function countChilds($class)
   {
-    $parent_class = get_class($this);
+    if ($this->isNew()) {
+      return 0;
+    } else {
+      $parent_class = get_class($this);
+      $primary_key  = QuarkDBUtils::getPrimaryKey($parent_class);
+      $where        = array();
 
-    $primary_key = QuarkDBUtils::getPrimaryKey($parent_class);
+      foreach ($primary_key as $pk) {
+        $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+      }
 
-    $where = array();
-    foreach ($primary_key as $pk) {
-      $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+      return $class::query()->count()->where($where);
     }
-    return $class::query()->count()->where($where);
   }
 
   /**
@@ -157,17 +170,33 @@ abstract class QuarkDBObject
    * no existe el padre devuelve null
    * 
    * @param string $class Nombre de clase padre
+   * @param array|string $columns Lista de columnas, todas si no se especifica.
    * @return QuarkDBObject|null
+   * @throws QuarkDBException
    */
-  public function getParent($class)
+  public function getParent($class, $columns = null)
   {
+    /* Obtener la lista de columnas que forman el primary key de la tabla padre y
+     * con esta lista formar los valores del primary key que será utilizado con
+     * el método findByPk() */
     $primary_key = QuarkDBUtils::getPrimaryKey($class);
-    $parent_pk = array();
+    $parent_pk   = array();
+
     foreach ($primary_key as $pk) {
-      $field = $class::TABLE.'_'.$pk;
-      $parent_pk[$pk] = $this->$field;
+      $related_column = $class::TABLE.'_'.$pk;
+      if (property_exists($this, $related_column)) {
+        $parent_pk[$pk] = $this->$related_column;
+      } else {
+        throw new QuarkDBException(
+          __METHOD__.'() Property "'.$related_column
+          .'" is not defined in the instance of "'.get_class($this).'".',
+          QuarkDBException::ERROR_MISSING_PROPERTY
+        );
+        break;
+      }
     }
-    return $class::query()->selectByPk($parent_pk);
+
+    return $class::query()->findByPk($parent_pk, $columns);
   }
 
   /**
@@ -181,7 +210,7 @@ abstract class QuarkDBObject
     /* Si el primary key tiene valores nulos, se asume que el objeto actual no
      * esta relacionado con ninguna fila en la tabla */
     foreach (QuarkDBUtils::getPrimaryKey(get_class($this)) as $pk) {
-      if ($this->$pk === null) {
+      if (!isset($this->$pk)) {
         return true;
       }
     }
@@ -191,13 +220,13 @@ abstract class QuarkDBObject
 
   /**
    * Este metodo crea/actualiza las propiedades que corresponden a las columnas
-   * de la tabla enlazada al objeto a partir de un array asociativo.
+   * de la tabla enlazada al objeto a partir de un array asociativo o un objeto.
    *
    * Si es necesario que las clases hijas hagan alguna tarea cuando las columnas
    * esten listas se debe hacer override de este metodo en lugar de hacer override
    * del metodo __construct();
    * 
-   * @param array $columns Array asociativo con los nuevos valores
+   * @param array|object $columns Colección de key/value con las columnas
    */
   public function inflate($columns)
   {

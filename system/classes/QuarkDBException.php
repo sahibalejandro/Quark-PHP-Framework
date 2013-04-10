@@ -23,6 +23,7 @@ class QuarkDBException extends Exception
   const ERROR_UNDEFINED_FETCH_TYPE = 32;
   const ERROR_NO_QUERY_TYPE        = 64;
   const ERROR_QUERY                = 128;
+  const ERROR_MISSING_PROPERTY     = 256;
 
   public function __construct($message, $code, PDOException $PDOException = null)
   {

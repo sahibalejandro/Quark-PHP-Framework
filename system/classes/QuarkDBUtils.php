@@ -31,30 +31,34 @@ final class QuarkDBUtils
   private static $pdo_objects = array();
 
   // Tipos de columna
-  const TYPE_NUMBER      = 'a';
-  const TYPE_INTEGER     = 'b';
-  const TYPE_TINY_INT    = 'c';
-  const TYPE_SMALL_INT   = 'd';
-  const TYPE_MEDIUM_INT  = 'e';
-  const TYPE_INT         = 'f';
-  const TYPE_BIG_INT     = 'g';
-  const TYPE_DECIMAL     = 'h';
-  const TYPE_FLOAT       = 'i';
-  const TYPE_DOUBLE      = 'j';
-  const TYPE_STRING      = 'k';
-  const TYPE_CHAR        = 'l';
-  const TYPE_VARCHAR     = 'm';
-  const TYPE_TINY_TEXT   = 'n';
-  const TYPE_TEXT        = 'o';
-  const TYPE_MEDIUM_TEXT = 'p';
-  const TYPE_LONG_TEXT   = 'q';
-  const TYPE_ENUM        = 'r';
-  const TYPE_SET         = 's';
-  const TYPE_DATE        = 't';
-  const TYPE_DATE_TIME   = 'u';
-  const TYPE_TIME        = 'v';
-  const TYPE_YEAR        = 'w';
-  const TYPE_TIMESTAMP   = 'x';
+  const TYPE_NUMBER      = 1; // Cualquier número
+  const TYPE_INTEGER     = 2; // Solo números enteros
+  const TYPE_TINY_INT    = 3;
+  const TYPE_SMALL_INT   = 4;
+  const TYPE_MEDIUM_INT  = 5;
+  const TYPE_INT         = 6;
+  const TYPE_BIG_INT     = 7;
+  const TYPE_DECIMAL     = 8;
+  const TYPE_FLOAT       = 9;
+  const TYPE_DOUBLE      = 10;
+  const TYPE_STRING      = 11; // Cualquier char, varchar o text
+  const TYPE_CHAR        = 12;
+  const TYPE_VARCHAR     = 13;
+  const TYPE_TINY_TEXT   = 14;
+  const TYPE_TEXT        = 15;
+  const TYPE_MEDIUM_TEXT = 16;
+  const TYPE_LONG_TEXT   = 17;
+  const TYPE_TINY_BLOB   = 18;
+  const TYPE_BLOB        = 19;
+  const TYPE_MEDIUM_BLOB = 20;
+  const TYPE_LONG_BLOB   = 21;
+  const TYPE_ENUM        = 22;
+  const TYPE_SET         = 23;
+  const TYPE_DATE        = 24;
+  const TYPE_DATE_TIME   = 25;
+  const TYPE_TIME        = 26;
+  const TYPE_YEAR        = 27;
+  const TYPE_TIMESTAMP   = 28;
 
   /**
    * Devuelve una instancia de PDO configurado para la conección $connection definida
@@ -116,22 +120,22 @@ final class QuarkDBUtils
   }
 
   /**
-   * Devuelve el posible valor para la columna $column de la tabla $class::TABLE
-   * en base a su valor actual $value.
+   * Devuelve el formato correcto para el valor $value.
+   * Esto es util para convertir valores de tipo integer a valores string cuando
+   * la columna $column es de tipo DATE*
    * 
-   * @param string $column Nombre de columna
-   * @param string $class Nombre de clase
-   * @param mixed $value Valor
-   * @return mixed Posible valor
+   * @param mixed $value
+   * @param string $column Nombre de la columna
+   * @param string $class Nombre de la clase para el scope
    */
-  public static function getPossibleValue($column, $class, $value)
+  public static function formatValue($value, $column, $class)
   {
     $ColumnInfo = self::getColumnInfo($column, $class);
 
-    if ($value !== null) {
-      /* Cuando el tipo de columna es date, datetime, time o year y el valor
-       * del campo es un número entero, se asume que se utiliza un UNIX timestamp
-       * y se hace la conversión con date() para obtener el valor correcto */
+    if ($value != null) {
+       /* Cuando el tipo de columna es date, datetime, time o year y el valor
+        * del campo es un número entero, se asume que se utiliza un UNIX timestamp
+        * y se hace la conversión con date() para obtener el valor correcto */
       if (is_int($value)) {
         if (self::isType(self::TYPE_DATE, $ColumnInfo)) {
           $value = date('Y-m-d', $value);
@@ -141,51 +145,6 @@ final class QuarkDBUtils
           $value = date('H:i:s', $value);
         } elseif (self::isType(self::TYPE_YEAR, $ColumnInfo)) {
           $value = date('Y', $value);
-        }
-      }
-    } else {
-      
-      // Cuando el valor del campo es php null
-      
-      /* Cuando el campo de la tabla NO acepta nulos agregamos su valor default
-       * El valor puede continuar siendo php null cuando:
-       *
-       * a) Sea un campo AUTO_INCREMENT
-       * b) Sea un campo timestamp con default "CURRENT_TIMESTAMP" y/o
-       *    extra "on update CURRENT_TIMESTAMP"
-       */
-      if ($ColumnInfo->Null == 'NO'
-        && (
-            $ColumnInfo->Extra != 'auto_increment'
-            /**
-             * TODO:
-             * Verificar si se puede usar isType(TYPE_TIMESTAMP)
-             */
-            && $ColumnInfo->Extra != 'on update CURRENT_TIMESTAMP'
-            && $ColumnInfo->Default != 'CURRENT_TIMESTAMP'
-           )
-      ) {
-        // Asignar el valor por default
-        if ($ColumnInfo->Default != null) {
-          $value = $ColumnInfo->Default;
-        } elseif (self::isType(self::TYPE_NUMBER, $ColumnInfo)) {
-          $value = 0;
-        } elseif (self::isType(self::TYPE_STRING, $ColumnInfo)) {
-          $value = '';
-        } elseif (self::isType(self::TYPE_SET, $ColumnInfo)) {
-          $value = '';
-        } elseif (self::isType(self::TYPE_YEAR, $ColumnInfo)) {
-          $value = '0000';
-        } elseif (self::isType(self::TYPE_TIME, $ColumnInfo)) {
-          $value = '00:00:00';
-        } elseif (self::isType(self::TYPE_DATE, $ColumnInfo)) {
-          $value = '0000-00-00';
-        } elseif (self::isType(self::TYPE_DATE_TIME, $ColumnInfo)) {
-          $value = '0000-00-00 00:00:00';
-        } elseif (self::isType(self::TYPE_ENUM, $ColumnInfo)) {
-          $tmp = explode('(', $ColumnInfo->Type);
-          $tmp = explode(',', $tmp[1]);
-          $value = str_replace("'", '', $tmp[0]);
         }
       }
     }
@@ -225,76 +184,88 @@ final class QuarkDBUtils
     $pattern = '';
     switch ($type) {
       case self::TYPE_NUMBER:
-        $pattern = '/^(tinyint|smallint|mediumint|int|bigint|decimal|float|double)\b/';
+        $pattern = '/^(tinyint|smallint|mediumint|int|bigint|decimal|float|double)\b/i';
         break;
       case self::TYPE_INTEGER:
-        $pattern = '/^(tinyint|smallint|mediumint|int|bigint)\b/';
+        $pattern = '/^(tinyint|smallint|mediumint|int|bigint)\b/i';
         break;
       case self::TYPE_TINY_INT:
-        $pattern = '/^tinyint\b/';
+        $pattern = '/^tinyint\b/i';
         break;
       case self::TYPE_SMALL_INT:
-        $pattern = '/^smallint\b/';
+        $pattern = '/^smallint\b/i';
         break;
       case self::TYPE_MEDIUM_INT:
-        $pattern = '/^mediumint\b/';
+        $pattern = '/^mediumint\b/i';
         break;
       case self::TYPE_INT:
-        $pattern = '/^int\b/';
+        $pattern = '/^int\b/i';
         break;
       case self::TYPE_BIG_INT:
-        $pattern = '/^bigint\b/';
+        $pattern = '/^bigint\b/i';
         break;
       case self::TYPE_DECIMAL:
-        $pattern = '/^decimal\b/';
+        $pattern = '/^decimal\b/i';
         break;
       case self::TYPE_FLOAT:
-        $pattern = '/^float\b/';
+        $pattern = '/^float\b/i';
         break;
       case self::TYPE_DOUBLE:
-        $pattern = '/^double\b/';
+        $pattern = '/^double\b/i';
         break;
       case self::TYPE_STRING:
-        $pattern = '/^(char|varchar|tinytext|text|mediumtext|longtext)\b/';
+        $pattern = '/^(char|varchar|tinytext|text|mediumtext|longtext)\b/i';
         break;
       case self::TYPE_CHAR:
-        $pattern = '/^char\b/';
+        $pattern = '/^char\b/i';
         break;
       case self::TYPE_VARCHAR:
-        $pattern = '/^varchar\b/';
+        $pattern = '/^varchar\b/i';
         break;
       case self::TYPE_TINY_TEXT:
-        $pattern = '/^tinytext\b/';
+        $pattern = '/^tinytext\b/i';
         break;
       case self::TYPE_TEXT:
-        $pattern = '/^text\b/';
+        $pattern = '/^text\b/i';
         break;
       case self::TYPE_MEDIUM_TEXT:
-        $pattern = '/^mediumtext\b/';
+        $pattern = '/^mediumtext\b/i';
         break;
       case self::TYPE_LONG_TEXT:
-        $pattern = '/^longtext\b/';
+        $pattern = '/^longtext\b/i';
+        break;
+      case self::TYPE_TINY_BLOB:
+        $pattern = '/^tinyblob\b/i';
+        break;
+      case self::TYPE_BLOB:
+        $pattern = '/^blob\b/i';
+        break;
+      case self::TYPE_MEDIUM_BLOB:
+        $pattern = '/^mediumblob\b/i';
+        break;
+      case self::TYPE_LONG_BLOB:
+        $pattern = '/^longblob\b/i';
         break;
       case self::TYPE_ENUM:
-        $pattern = '/^enum\b/';
+        $pattern = '/^enum\b/i';
         break;
       case self::TYPE_SET:
-        $pattern = '/^set\b/';
+        $pattern = '/^set\b/i';
         break;
       case self::TYPE_DATE:
-        $pattern = '/^date\b/';
+        $pattern = '/^date\b/i';
         break;
       case self::TYPE_DATE_TIME:
-        $pattern = '/^datetime\b/';
+        $pattern = '/^datetime\b/i';
         break;
       case self::TYPE_TIME:
-        $pattern = '/^time\b/';
+        $pattern = '/^time\b/i';
         break;
       case self::TYPE_YEAR:
-        $pattern = '/^year\b/';
+        $pattern = '/^year\b/i';
         break;
       case self::TYPE_TIMESTAMP:
-        $pattern = '/^timestamp\b/';
+        $pattern = '/^timestamp\b/i';
         break;
     }
 
@@ -347,6 +318,26 @@ final class QuarkDBUtils
         $columns[] = $ColumnInfo->Field;
       }
     }
+    return $columns;
+  }
+
+  /**
+   * Agrega las columnas que forman el primary key de la tabla $class::TABLE a la
+   * lista de columnas $columns, solo si es necesario.
+   */
+  public static function addPkColumns($columns, $class)
+  {
+    if (is_string($columns)) {
+      $columns = self::splitColumns($columns);
+    }
+
+    $primary_key = self::getPrimaryKey($class);
+    foreach ($primary_key as $pk) {
+      if (!in_array($pk, $columns)) {
+        $columns[] = $pk;
+      }
+    }
+
     return $columns;
   }
 
