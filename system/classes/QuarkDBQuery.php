@@ -673,7 +673,7 @@ final class QuarkDBQuery
       );
     }
     $this->addSelectColumns($select_columns, $this->class);
-    return $this->asArray();
+    return $this;
   }
 
   /**
@@ -843,8 +843,8 @@ final class QuarkDBQuery
             $return = array_shift($return);
           } else {
             /* La fila tiene varios elementos, filtramos las columnas para remover
-             * el prefijo de la tabla y devolvemos el array de columnas */
-            $return = self::filterColumns($return, $this->class);
+             * el prefijo de la tabla y devolvemos el objeto anonimo */
+            $return = (object)self::filterColumns($return, $this->class);
           }
           break;
         case self::QUERY_TYPE_INSERT:
