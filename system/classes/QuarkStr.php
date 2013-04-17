@@ -165,7 +165,7 @@ class QuarkStr
    */
   public function resumeText($text, $max_words = 10, $suffix = '...')
   {
-    $words = str_word_count($text, 1);
+    $words = preg_split('/ +/', $text);
     if (count($words) <= $max_words) {
       return $text;
     } else {
