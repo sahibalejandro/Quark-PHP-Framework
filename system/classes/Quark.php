@@ -28,7 +28,7 @@ class Quark
 
   private static $called_action;
 
-  const VERSION = '3.6.5';
+  const VERSION = '3.6.6';
 
   /**
    * Bootstrap
