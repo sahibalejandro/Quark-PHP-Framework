@@ -145,9 +145,10 @@ class QuarkController
    */
   public function __construct()
   {
-    $this->QuarkURL     = new QuarkURL();
-    $this->QuarkStr     = new QuarkStr();
+    $this->QuarkURL  = new QuarkURL();
+    $this->QuarkStr  = new QuarkStr();
     $this->QuarkSess = new QuarkSess();
+    
     if(QUARK_MULTILANG){
       $this->QuarkLang = new QuarkLang();
     }
@@ -241,6 +242,12 @@ class QuarkController
     return $this;
   }
 
+  /**
+   * Imprime los tags <link> necesarios para incluir todos los archivos
+   * CSS agregados con prependCssFiles() y appendCssFiles()
+   * 
+   * @param bool $full_url Usa rutas absolutas cuando es TRUE
+   */
   protected function includeCssFiles($full_url = true)
   {
     $included = array();
@@ -261,16 +268,25 @@ class QuarkController
     }
   }
 
-  protected function includeJsFiles($full_url = true)
+  /**
+   * Imprime los tags <script> necesarios para incluir todos los archivos
+   * JavaScript agregados con prependJsFiles() y appendJsFiles()
+   * 
+   * @param bool $full_url Usa rutas absolutas cuando es TRUE
+   * @param bool $use_quark_js Incluye el framework jQuery + QuarkJS si es TRUE
+   */
+  protected function includeJsFiles($full_url = true, $use_quark_js = true)
   {
     $included = array();
 
-    echo '<script type="text/javascript" src="'
-      , ($full_url
-          ? $this->QuarkURL->getURL('quark/quark-include-js')
-          : (!QUARK_FRIENDLY_URL ? '?' : ''). 'quark/quark-include-js'
-        )
-      , '"></script>';
+    if ($use_quark_js) {
+      echo '<script type="text/javascript" src="'
+        , ($full_url
+            ? $this->QuarkURL->getURL('quark/quark-include-js')
+            : (!QUARK_FRIENDLY_URL ? '?' : ''). 'quark/quark-include-js'
+          )
+        , '"></script>';
+    }
 
     foreach($this->_js_files as $file){
       if(array_search($file, $included) === false){

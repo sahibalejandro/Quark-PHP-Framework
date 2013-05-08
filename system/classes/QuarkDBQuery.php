@@ -48,6 +48,12 @@ final class QuarkDBQuery
   private $insert_columns;
 
   /**
+   * Lista de placeholders para INSERT
+   * @var array
+   */
+  private $insert_placeholders;
+
+  /**
    * Lista de columnas para UPDATE
    * @var array
    */
@@ -174,17 +180,18 @@ final class QuarkDBQuery
    */
   public function clear()
   {
-    $this->query_type       = 0; 
-    $this->fetch_type       = 0;
+    $this->query_type          = 0;
+    $this->fetch_type          = 0;
     $this->results_as_anon_obj = false;
-    $this->select_columns   = array();
-    $this->insert_columns   = array();
-    $this->update_columns   = array();
-    $this->joins            = array();
-    $this->where            = array();
-    $this->order            = array();
-    $this->limit            = array();
-    $this->params           = array();
+    $this->select_columns      = array();
+    $this->insert_columns      = array();
+    $this->insert_placeholders = array();
+    $this->update_columns      = array();
+    $this->joins               = array();
+    $this->where               = array();
+    $this->order               = array();
+    $this->limit               = array();
+    $this->params              = array();
     return $this;
   }
 
@@ -280,7 +287,7 @@ final class QuarkDBQuery
    */
   public function findById($id, $columns = null)
   {
-    return $this->findByPk(array('id' => $id));
+    return $this->findByPk(array('id' => $id), $columns);
   }
 
   /**
@@ -896,6 +903,8 @@ final class QuarkDBQuery
     } else {
       $QuarkDBObject = new $class();
       $QuarkDBObject->inflate($row);
+      // Marcar el objeto como guardado en DB
+      $QuarkDBObject->setStored();
       $row = $QuarkDBObject;
     }
 

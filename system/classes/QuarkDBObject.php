@@ -17,6 +17,12 @@ abstract class QuarkDBObject
   private $qdbo_error_msg;
 
   /**
+   * Flag para saber si los datos del objeto ya estan guardados en la base de datos
+   * para modificar este valor utilice el metodo QuarkDBObject::setStored()
+   */
+  private $stored = false;
+
+  /**
    * Este metodo se invoca dentro de save(), si el resultado es true se guardan
    * los datos, de lo contrario no se guardan.
    * El programador debe hacer override de este metodo.
@@ -83,25 +89,7 @@ abstract class QuarkDBObject
        * a los que estan actualmente en el objeto, por ejemplo los datos tipo
        * date o datetime */
 
-      if ($this->isNew()) {
-        // Insertar datos
-        if ($Query->insert($columns)->exec() == 0) {
-          $this->setErrorMsg('The new record was not inserted.');
-          // Como al parecer no se guardaron los datos, devolvemos false.
-          $return = false;
-        } else {
-          /* Actualizar este objeto con los datos insertados en la tabla, además
-           * nos aseguramos de traer su primary key */
-          $last_row_columns = array_keys($columns);
-          $last_row_columns = QuarkDBUtils::addPkColumns($last_row_columns, $class);
-
-          $row = $Query->getLastRow($last_row_columns);
-
-          if ($row != null) {
-            $this->inflate($row);
-          }
-        }
-      } else {
+      if (!$this->isNew()) {
         // Actualizar datos, necesitamos el primary key para el WHERE
         $primary_key = array();
         foreach (QuarkDBUtils::getPrimaryKey($class) as $pk) {
@@ -117,11 +105,79 @@ abstract class QuarkDBObject
         if ($Row != null) {
           $this->inflate($Row);
         }
+      } else {
+        // Insertar datos
+        if ($Query->insert($columns)->exec() == 0) {
+          $this->setErrorMsg('The new record was not inserted.');
+          // Como al parecer no se guardaron los datos, devolvemos false.
+          $return = false;
+        } else {
+          /* Actualizar este objeto con los datos insertados en la tabla, además
+           * nos aseguramos de traer su primary key */
+          $last_row_columns = array_keys($columns);
+          $last_row_columns = QuarkDBUtils::addPkColumns($last_row_columns, $class);
+
+          /* Cuando el PK esta completo no es necesario utilizar getLastRow()
+           * para obtener los datos del registro que se acaba de guardar. */
+          $use_pk      = true;
+          $primary_key = array();
+
+          /* Iterar sobre los campos que forman el PK, todos deben tener un valor
+           * diferente de NULL para poder usar el PK en lugar de getLastRow() */
+          foreach (QuarkDBUtils::getPrimaryKey($class) as $pk) {
+            if ($this->$pk !== null) {
+              $primary_key[$pk] = $this->$pk;
+            } else {
+              // Ya no se puede usar el PK, se usará getLastRow()
+              $use_pk = false;
+              break;
+            }
+          }
+
+          if ($use_pk) {
+            $row = $Query->selectOne()->where($primary_key)->exec();
+          } else {
+            $row = $Query->getLastRow($last_row_columns);
+          }
+
+          if ($row != null) {
+            $this->inflate($row);
+            // Marcar objeto como guardado en DB
+            $this->setStored();
+          }
+        }
       }
 
       return $return;
     }
 
+  }
+
+  /**
+   * Elimina el registro asociado en la base de datos pero no borra los datos del
+   * objeto PHP actual.
+   * 
+   * @throws QuarkDBException
+   * @return int Número de filas eliminadas, por lo general será 0 o 1
+   */
+  public function delete()
+  {
+    $class = get_class($this);
+    if ($this->isNew()) {
+      return 0;
+    } else {
+      // Necesitamos formar el primary key para el WHERE de la consulta DELETE
+      $primary_key = array();
+      foreach (QuarkDBUtils::getPrimaryKey($class) as $pk) {
+        $primary_key[$pk] = $this->$pk;
+      }
+      $Query = new QuarkDBQuery($class);
+      $deleted_rows = $Query->delete()->where($primary_key)->exec();
+
+      // Desmarcar el objeto como guardado en base de datos
+      $this->stored = false;
+      return $deleted_rows;
+    }
   }
 
   /**
@@ -200,6 +256,16 @@ abstract class QuarkDBObject
   }
 
   /**
+   * Marca que los datos del objeto actual ya estan en la base de datos
+   * @return QuarkDBObject
+   */
+  public function setStored()
+  {
+    $this->stored = true;
+    return $this;
+  }
+
+  /**
    * Devuelve true si el objeto no esta relacionado con ninguna fila en la tabla
    * de lo contrario devuelve false.
    * 
@@ -207,15 +273,7 @@ abstract class QuarkDBObject
    */
   public function isNew()
   {
-    /* Si el primary key tiene valores nulos, se asume que el objeto actual no
-     * esta relacionado con ninguna fila en la tabla */
-    foreach (QuarkDBUtils::getPrimaryKey(get_class($this)) as $pk) {
-      if (!isset($this->$pk)) {
-        return true;
-      }
-    }
-
-    return false;
+    return !$this->stored;
   }
 
   /**
