@@ -125,7 +125,7 @@ abstract class QuarkDBObject
           /* Iterar sobre los campos que forman el PK, todos deben tener un valor
            * diferente de NULL para poder usar el PK en lugar de getLastRow() */
           foreach (QuarkDBUtils::getPrimaryKey($class) as $pk) {
-            if ($this->$pk !== null) {
+            if (isset($this->$pk)) {
               $primary_key[$pk] = $this->$pk;
             } else {
               // Ya no se puede usar el PK, se usará getLastRow()
