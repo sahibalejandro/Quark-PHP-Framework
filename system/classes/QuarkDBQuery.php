@@ -524,6 +524,17 @@ final class QuarkDBQuery
   }
 
   /**
+   * Agrega ORDER BY RAND() al query
+   * 
+   * @return QuarkDBQuery
+   */
+  public function orderByRand()
+  {
+    $this->order[] = 'RAND()';
+    return $this;
+  }
+
+  /**
    * Define el limite de la consulta
    * 
    * @param int $offset
