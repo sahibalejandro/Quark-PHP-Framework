@@ -14,32 +14,52 @@
 class QuarkURL
 {
   /**
+   * PathInfo que corresponde a la solicitud en la URL
    * @var Object
    */
   private static $_PathInfo;
+
+  /**
+   * PathInfo que corresponde a la solicitud para el controller y action
+   * @var Object
+   */
+  private static $_RealPathInfo;
 
   /**
    * @var string
    */
   private static $_base_url;
 
+  private static $_initialized = false;
+
   /**
-   * Devuelve un objeto PathInfo con los datos
-   * de la URL de entrada.
-   *
-   * @return Object
+   * Devuelve el objeto PathInfo real, si se especifica $real = false devuelve
+   * el path info de la solicitud en la URL, que puede ser el no real.
+   * 
+   * @param bool $real TRUE por default.
+   * @return object(controller,action,lang,arguments)
    */
-  public function getPathInfo()
+  public function getPathInfo($real = true)
   {
-    if (self::$_PathInfo == null) {
-      
-      // Initialize object
-      self::$_PathInfo = new stdClass();
-      
+    return $real ? self::$_RealPathInfo : self::$_PathInfo;
+  }
+
+  /**
+   * Inicializa los objetos PathInfo y RealPathInfo
+   * Este metodo debe ser invocado antes de cualquier uso de objetos QuarkURL
+   * y solo puede ser ivocado una vez.
+   */
+  public static function init()
+  {
+    if (!self::$_initialized) {
       /*
        * Obtener el path info desde la query string
        */
-      if (QUARK_FRIENDLY_URL) {
+      if (!QUARK_FRIENDLY_URL) {
+        $path_info = key($_GET);
+        if (strpos($path_info, '/'))
+        array_shift($_GET);
+      } else {
         $path_info = $_GET['quark_path_info'];
         unset($_GET['quark_path_info']);
         
@@ -47,109 +67,147 @@ class QuarkURL
         if($path_info == 'index.php'){
           $path_info = 'home/index';
         }
-      } else {
-        $path_info = key($_GET);
       }
-      $Str = new QuarkStr();
-      $path_info = $Str->cleanPath($path_info);
 
-      /* Cargar rutas para modificar el path info */
+      $Str            = new QuarkStr();
+      $path_info      = $Str->cleanPath($path_info);
+      $real_path_info = $path_info;
+
+      // Modificar el path info si coincide con una ruta definida en la configuración
       foreach (Quark::getRoutes() as $pattern => $new_route) {
         $pattern = "#^$pattern$#";
         if (preg_match($pattern, $path_info)) {
-          $path_info = preg_replace($pattern, $new_route, $path_info);
+          $real_path_info = preg_replace($pattern, $new_route, $path_info);
           break;
         }
       }
 
-      /* limpiar el path info */
-      $path_info = $Str->cleanPath($path_info);
+      self::$_PathInfo     = self::buildPathInfo($path_info);
+      self::$_RealPathInfo = self::buildPathInfo($real_path_info);
 
-      /* crear el array con las partes del path info */
-      if (empty($path_info)) {
-        $path_info_parts = array();
-      } else {
-        $path_info_parts = explode('/', $path_info);
-      }
-
-      /*
-       * Configurar el elemento "lang" (indice: 0) del path info
-       */
-      if (!QUARK_MULTILANG) {
-        array_unshift($path_info_parts, 'no_lang');
-      } else {
-        $langs = Quark::getConfigVal('langs');
-
-        /* obtener el lenguaje desde la query string */
-        if (!QUARK_LANG_ON_SUBDOMAIN) {
-          if (!isset($path_info_parts[0]) ||
-            array_search($path_info_parts[0], $langs) === false
-          ) {
-            array_unshift($path_info_parts, $langs[0]);
-          }
-        } else {
-          /* obtener el lenguaje desde el subdominio del host */
-          $host_parts = explode('.', $_SERVER['HTTP_HOST']);
-
-          $lang = $host_parts[0];
-          if (array_search($lang, $langs) === false) {
-            $lang = $langs[0];
-          }
-          array_unshift($path_info_parts, $lang);
-        }
-      }
-
-      /* crear array fixeado del path info */
-      $path_info_parts = array_pad(
-        explode('/', implode('/', $path_info_parts), 4),
-        4,
-        null
-      );
-
-      /* Valores por default para el path_info */
-      if ($path_info_parts[1] == '') {
-        $path_info_parts[1] = 'home';
-      }
-
-      if ($path_info_parts[2] == '') {
-        $path_info_parts[2] = 'index';
-      }
-
-      if ($path_info_parts[3] == '') {
-        $path_info_parts[3] = array();
-      } else {
-        $path_info_parts[3] = explode('/', $path_info_parts[3]);
-      }
-
-      /* Cargar objeto path info y finalizar */
-      list(
-        self::$_PathInfo->lang,
-        self::$_PathInfo->controller,
-        self::$_PathInfo->action,
-        self::$_PathInfo->arguments
-      ) = $path_info_parts;
+      // Nos aseguramos que este metodo solo sea invocado una vez.
+      self::$_initialized  = true;
     }
-    return self::$_PathInfo;
   }
 
   /**
-   * Devuelve una URL con el prefijo de lenguaje $lang haciendo
-   * referencia al controlador y accion actuales.
+   * Genera un objeto PathInfo a partir de $path_info
+   * 
+   * @return object(controller,action,lang,arguments)
+   */
+  private static function buildPathInfo($path_info)
+  {
+    /* limpiar el path info */
+    $Str = new QuarkStr();
+    $path_info = $Str->cleanPath($path_info);
+
+    /* crear el array con las partes del path info */
+    if (empty($path_info)) {
+      $path_info_parts = array();
+    } else {
+      $path_info_parts = explode('/', $path_info);
+    }
+
+    /*
+     * Configurar el elemento "lang" (indice: 0) del path info
+     */
+    if (!QUARK_MULTILANG) {
+      array_unshift($path_info_parts, 'no_lang');
+    } else {
+      $langs = Quark::getConfigVal('langs');
+
+      /* obtener el lenguaje desde la query string */
+      if (!QUARK_LANG_ON_SUBDOMAIN) {
+        if (!isset($path_info_parts[0]) ||
+          array_search($path_info_parts[0], $langs) === false
+        ) {
+          array_unshift($path_info_parts, $langs[0]);
+        }
+      } else {
+        /* obtener el lenguaje desde el subdominio del host */
+        $host_parts = explode('.', $_SERVER['HTTP_HOST']);
+
+        $lang = $host_parts[0];
+        if (array_search($lang, $langs) === false) {
+          $lang = $langs[0];
+        }
+        array_unshift($path_info_parts, $lang);
+      }
+    }
+
+    /* crear array fixeado del path info */
+    $path_info_parts = array_pad(
+      explode('/', implode('/', $path_info_parts), 4),
+      4,
+      null
+    );
+
+    /* Valores por default para el path_info */
+    if ($path_info_parts[1] == '') {
+      $path_info_parts[1] = 'home';
+    }
+
+    if ($path_info_parts[2] == '') {
+      $path_info_parts[2] = 'index';
+    }
+
+    if ($path_info_parts[3] == '') {
+      $path_info_parts[3] = array();
+    } else {
+      $path_info_parts[3] = explode('/', $path_info_parts[3]);
+    }
+
+    /* Cargar objeto path info y finalizar */
+    $PathInfo = new stdClass();
+    list(
+      $PathInfo->lang,
+      $PathInfo->controller,
+      $PathInfo->action,
+      $PathInfo->arguments
+    ) = $path_info_parts;
+
+    return $PathInfo;
+  }
+
+  /**
+   * Devuelve la URL actual, incluyendo sus variables GET
+   * 
+   * @param string $lang Sufijo de lenguaje (utilizado por getURLToSwitchLang())
+   * @return string URL Actual
+   */
+  public function getActualURL($lang = null)
+  {
+    $FakePathInfo = self::getPathInfo(false);
+
+    $action = $FakePathInfo->action == 'index'
+      ? '' : $FakePathInfo->action;
+      
+    $controller = $action != ''
+      ? $FakePathInfo->controller
+      : ($FakePathInfo->controller == 'home'
+        ? '' : $FakePathInfo->controller);
+    $url = $controller . ($action == '' ? '' : "/$action");
+
+    /* Agregar el http query, anteponiendo el signo "?" como debe ser normalmente.
+     * El metodo getURL() se encargará de reemplazar el signo "?" por "&" si las
+     * URL amigables no estan habilitadas. */
+    if (!empty($_GET)) {
+      $url .= '?'.http_build_query($_GET);
+    }
+
+    return $this->getURL($url, $lang);
+  }
+
+  /**
+   * Devuelve la URL actual (incluyendo sus variables GET) pero con diferente
+   * prefijo del lenguaje.
    *
-   * @param string $lang
-   * @return string
+   * @param string $lang Sufijo de lenguaje
+   * @return string URL
    */
   public function getURLToSwitchLang($lang)
   {
-    $action = self::getPathInfo()->action == 'index'
-      ? '' : self::getPathInfo()->action;
-      
-    $controller = $action != ''
-      ? self::getPathInfo()->controller
-      : (self::getPathInfo()->controller == 'home'
-        ? '' : self::getPathInfo()->controller);
-    $url = $controller . ($action == '' ? '' : "/$action");
-    return $this->getURL($url, $lang);
+    return $this->getActualURL($lang);
   }
 
   /**
@@ -165,7 +223,7 @@ class QuarkURL
 
       /* Tomar el lenguaje del pathinfo si no se especificó */
       if ($lang == null) {
-        $lang = self::getPathInfo()->lang;
+        $lang = self::getPathInfo(false)->lang;
       }
 
       /* Separar el host name para verificar si el subdominio es un prefijo
@@ -241,7 +299,7 @@ class QuarkURL
       if ($lang == null
         || array_search($lang, Quark::getConfigVal('langs')) === false
       ) {
-        $lang = self::getPathInfo()->lang;
+        $lang = self::getPathInfo(false)->lang;
       }
       $url = $lang . '/' . $url;
     }

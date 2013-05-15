@@ -28,7 +28,7 @@ class Quark
 
   private static $called_action;
 
-  const VERSION = '3.6.6';
+  const VERSION = '3.6.7';
 
   /**
    * Bootstrap
@@ -169,14 +169,16 @@ class Quark
     }
     
     // Disable runtime magic quotes
-    if (function_exists('set_magic_quotes_runtime')) {
+    if (function_exists('set_magic_quotes_runtime') && get_magic_quotes_runtime()) {
       set_magic_quotes_runtime(0);
     }
 
     /* --------------------------------------------------
      * Leer path info
      */
-    $PathInfo = self::inst('QuarkURL')->getPathInfo();
+    QuarkURL::init();
+    $QuarkURL = new QuarkURL();
+    $PathInfo = $QuarkURL->getPathInfo();
 
     /* --------------------------------------------------
      * Agregar archivos de "includes" automaticos.
