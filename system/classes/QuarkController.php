@@ -2,14 +2,16 @@
 /**
  * QuarkPHP Framework
  * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
- * 
- * @link http://quarkphp.com
+ *
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ * @link    http://quarkphp.com
  */
 
 /**
- * Clase basica para instanciar controladores
- * @author sahib
+ * Clase basica para instanciar controladores.
+ * 
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  */
 class QuarkController
 {
@@ -169,7 +171,6 @@ class QuarkController
   /**
    * Cambia el nombre de la accion que sera invocada desde Quark::bigBang()
    * 
-   * @access protected
    * @param string $new_action_name
    */
   protected function changeActionName($new_action_name)
@@ -177,6 +178,13 @@ class QuarkController
     $this->_new_action_name = $new_action_name;
   }
 
+  /**
+   * Devuelve el nuevo nombre de "action" que fue definido con
+   * QuarkController::changeActionName()
+   * 
+   * @see QuarkController::changeActionName()
+   * @return string
+   */
   public function __getNewActionName()
   {
     return $this->_new_action_name;
@@ -445,6 +453,12 @@ class QuarkController
     $this->_ajax_not_found = true;
   }
 
+  /**
+   * Envia al buffer la respuesta AJAX en notacion JSON, este metodo es invocado
+   * internamente por el framework, el usuario debe utilizar QuarkController::setAjaxResponse()
+   * 
+   * @see QuarkController::setAjaxResponse()
+   */
   public function __sendAjaxResponse()
   {
     header('Content-Type:application/json;charset=utf-8');
@@ -492,6 +506,11 @@ class QuarkController
     }
   }
 
+  /**
+   * Envia al buffer el código JavaScript de jQuery y QuarkJS, este metodo
+   * es invocado por framework, no es necesario que el usuario haga llamadas
+   * a este metodo.
+   */
   public function quarkIncludeJs()
   {
     header('Content-Type:text/javascript;charset=utf8');

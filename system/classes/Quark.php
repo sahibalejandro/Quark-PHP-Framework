@@ -3,35 +3,65 @@
  * QuarkPHP Framework
  * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
  *
- * @link http://quarkphp.com
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ * @link    http://quarkphp.com
  */
 
 /**
- * Clase bootstrap
- * @author sahib
+ * Clase para realizar el bootstrap del framework.
+ * 
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  */
 class Quark
 {
   /**
-   * Directivas de configuración
-   * @see Quark::getConfigVal()
+   * Directivas de configuración.
+   * 
+   * @see Quark::getConfigVal() Para obtener el valor de una directiva de configuración.
    * @var array
    */
   private static $config;
 
+  /**
+   * Directivas de configuración para la conexión a las bases de datos.
+   * 
+   * @var array
+   */
   private static $db_config;
 
+  /**
+   * Lista de rutas definidas en la configuración.
+   * 
+   * @var array
+   */
   private static $routes;
 
+  /**
+   * Nombre del controlador llamado desde la URL
+   * 
+   * @deprecated
+   * @var string
+   */
   private static $called_controller;
 
+  /**
+   * Nombre del action llamado desde la URL
+   * 
+   * @deprecated
+   * @var string
+   */
   private static $called_action;
 
+  /**
+   * Versión actual del framework
+   * 
+   * @var string
+   */
   const VERSION = '3.6.7 dev';
 
   /**
-   * Bootstrap
+   * Inicia el proceso del framework.
    */
   public static function bigBang()
   {
@@ -41,6 +71,7 @@ class Quark
      * Validar versión minima de PHP 5.1
      */
     $php_min_version = '5.1';
+
     if (version_compare(PHP_VERSION, $php_min_version) < 0) {
       header('Content-Type: text/plain');
       die('Sorry, QuarkPHP needs PHP version '. $php_min_version
@@ -48,8 +79,12 @@ class Quark
       );
     }
 
-    /* --------------------------------------------------
-     * Autoload classes
+    /**
+     * Funcion utilizada para cargar automaticamente las clases del framework y
+     * del usuario, esta funcion es registrada mediante spl_autoload_register()
+     * cuando esta disponible, de lo contrario se utiliza __autoload()
+     * 
+     * @param string $class_name Nombre de la clase.
      */
     function quarkphp_autoload($class_name)
     {
@@ -65,6 +100,11 @@ class Quark
     if (function_exists('spl_autoload_register')) {
       spl_autoload_register('quarkphp_autoload');
     } else {
+      /**
+       * Carga automaticamente las clases del framework y del usuario.
+       * 
+       * @param $class_name Nombre de la clase.
+       */
       function __autoload($class_name)
       {
         quarkphp_autoload($class_name);
@@ -91,7 +131,7 @@ class Quark
      */
     $config = $db_config = array();
     require 'system/config/config.php';
-    if(is_file('application/config/config.php')){
+    if (is_file('application/config/config.php')) {
       require 'application/config/config.php';
     }
     self::$config    = $config;
@@ -107,7 +147,7 @@ class Quark
     error_reporting(self::$config['error_reporting']);
     date_default_timezone_set(self::$config['time_zone']);
 
-    if(self::$config['lc_all'] !== null){
+    if (self::$config['lc_all'] !== null) {
       setlocale(LC_ALL, self::$config['lc_all']);
     } else {
       setlocale(LC_COLLATE  , self::$config['lc_collate']);
@@ -117,21 +157,25 @@ class Quark
       setlocale(LC_TIME     , self::$config['lc_time']);
 
       // Only available if PHP was compiled with libintl
-      if(isset(self::$config['lc_messages'])){
-        setlocale(LC_MESSAGES , self::$config['lc_messages']);
+      if (isset(self::$config['lc_messages'])) {
+        setlocale(LC_MESSAGES, self::$config['lc_messages']);
       }
     }
 
     /* --------------------------------------------------
      * Agregar class paths para __autoload()
      */
-    self::$config['class_paths'] = array_merge(array(
-      'system/classes',
-      'application/classes',
-      'application/dbo',
-      'application/orm', // This is deprecated, and will be removed soon.
-      'application/controllers',
-      'system/controllers'), self::$config['class_paths']);
+    self::$config['class_paths'] = array_merge(
+      array(
+        'system/classes',
+        'application/classes',
+        'application/dbo',
+        'application/orm', // This is deprecated, and will be removed soon.
+        'application/controllers',
+        'system/controllers'
+      ),
+      self::$config['class_paths']
+    );
 
     /* --------------------------------------------------
      * Definir algunas clases
@@ -144,8 +188,10 @@ class Quark
     define('QUARK_ROOT_PATH', dirname($_SERVER['SCRIPT_FILENAME']));
     define('QUARK_APP_PATH', QUARK_ROOT_PATH . '/application');
     define('QUARK_SYS_PATH', QUARK_ROOT_PATH . '/system');
-    define('QUARK_APP_DIR'
-      , '/' . $QuarkStr->cleanPath(dirname($_SERVER['SCRIPT_NAME'])));
+    define(
+      'QUARK_APP_DIR',
+      '/' . $QuarkStr->cleanPath(dirname($_SERVER['SCRIPT_NAME']))
+    );
     
     define(
       'QUARK_AJAX',
@@ -195,8 +241,7 @@ class Quark
     $controller_name = $QuarkStr->toUpperCamelCase($PathInfo->controller);
     $action_name     = $QuarkStr->toLowerCamelCase($PathInfo->action);
 
-    if (!file_exists(
-      QUARK_APP_PATH . "/controllers/{$controller_name}Controller.php")) {
+    if (!file_exists(QUARK_APP_PATH . "/controllers/{$controller_name}Controller.php")) {
       // No existe el controlador solicitado, invocamos a QuarkController
       // para tener acceso a los metodos __quarkNotFound y __quarkAccessDenied
       $controller_name = 'Quark';
@@ -212,7 +257,7 @@ class Quark
     // Modificar el action name si se ha modificado desde el constructor del
     // controller
     $new_action_name = $Controller->__getNewActionName();
-    if($new_action_name !== false){
+    if ($new_action_name !== false) {
       $action_name = $new_action_name;
     }
 
@@ -265,11 +310,23 @@ class Quark
     ob_end_flush();
   }
 
+  /**
+   * Devuelve el nombre del controlador que fue llamado a travez de la URL
+   * 
+   * @see QuarkURL::getPathInfo()
+   * @deprecated Utilizar QuarkURL::getPathInfo()
+   */
   public static function getCalledControllerName()
   {
     return self::$called_controller;
   }
 
+  /**
+   * Devuelve el nombre del action que fue llamado a travez de la URL
+   * 
+   * @see QuarkURL::getPathInfo()
+   * @deprecated Utilizar QuarkURL::getPathInfo()
+   */
   public static function getCalledActionName()
   {
     return self::$called_action;
@@ -315,7 +372,7 @@ class Quark
    */
   public static function log($message)
   {
-    if( is_writable('application/messages.log') ){
+    if (is_writable('application/messages.log')) {
       $PathInfo = Quark::inst('QuarkURL')->getPathInfo();
       $full_message = '['.date('d-M-Y H:i:s').']';
       $full_message .= PHP_EOL.'lang='. $PathInfo->lang;
@@ -340,7 +397,8 @@ class Quark
 
   /**
    * Devuelve el array de configuracion $routes
-   * @return [type] [description]
+   * 
+   * @return array
    */
   public static function getRoutes()
   {
@@ -370,6 +428,8 @@ class Quark
 
   /**
    * Devuelve una instancia de $class_name para poder utilizar  "quick code"
+   * 
+   * @deprecated
    * @return Object
    */
   public static function inst($class_name)
@@ -386,10 +446,23 @@ class Quark
   {
     $args = func_get_args();
     echo '<pre>';
-    foreach($args as $arg){
+    foreach ($args as $arg) {
       var_dump($arg);
     }
     echo '</pre>';
     exit;
+  }
+
+  /**
+   * Devuelve el valor de una constante de clase utilizando Reflection.
+   * 
+   * @param string $class Nombre de clase
+   * @param string $constant Nombre de la constante
+   * @return mixed
+   */
+  public static function getClassConstant($class, $constant)
+  {
+    $ReflectionClass = new ReflectionClass();
+    
   }
 }

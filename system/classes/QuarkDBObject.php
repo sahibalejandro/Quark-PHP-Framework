@@ -2,11 +2,15 @@
 /**
  * QuarkPHP Framework
  * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
- * 
- * @link http://quarkphp.com
+ *
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ * @link    http://quarkphp.com
  */
 
+/**
+ * Objeto para representar una fila (registro) de una tabla en la base de datos
+ */
 abstract class QuarkDBObject
 {
   /**
@@ -197,7 +201,7 @@ abstract class QuarkDBObject
       $where        = array();
 
       foreach ($primary_key as $pk) {
-        $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+        $where[Quark::getClassConstant($parent_class, 'TABLE').'_'.$pk] = $this->$pk;
       }
       
       return $class::query()->find($columns)->where($where);
