@@ -454,15 +454,15 @@ class Quark
   }
 
   /**
-   * Devuelve el valor de una constante de clase utilizando Reflection.
+   * Devuelve el valor de una constante de clase usando ReflectionClass
    * 
    * @param string $class Nombre de clase
-   * @param string $constant Nombre de la constante
+   * @param string $constant Nombre de constante
    * @return mixed
    */
   public static function getClassConstant($class, $constant)
   {
-    $ReflectionClass = new ReflectionClass();
-    
+    $ReflectionClass = new ReflectionClass($class);
+    return $ReflectionClass->getConstant($constant);
   }
 }
