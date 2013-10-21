@@ -3,13 +3,14 @@
  * QuarkPHP Framework
  * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
  *
- * @link http://quarkphp.com
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ * @link    http://quarkphp.com
  */
 
 /**
  * Clase para crear URLs validas en la aplicación actual.
- * @author sahib
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  */
 class QuarkURL
 {
@@ -247,8 +248,7 @@ class QuarkURL
     }
 
     /* Definimos el protocolo para armar la URL completa */
-    $protocol = (strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') !== false
-      ? 'https' : 'http');
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') ? 'https' : 'http';
 
     $base_url = $protocol . '://' . $host . QUARK_APP_DIR
       . (QUARK_APP_DIR == '/' ? '' : '/');

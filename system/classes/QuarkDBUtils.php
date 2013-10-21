@@ -2,11 +2,15 @@
 /**
  * QuarkPHP Framework
  * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
- * 
- * @link http://quarkphp.com
+ *
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ * @link    http://quarkphp.com
  */
 
+/**
+ * Clase estatica con utilidades para el motor QuarkDB
+ */
 final class QuarkDBUtils
 {
   /**
@@ -280,9 +284,10 @@ final class QuarkDBUtils
    */
   public static function getColumnsInfo($class)
   {
+    $table = Quark::getClassConstant($class, 'TABLE');
     if (!isset(self::$columns_info[$class])) {
-      $PDO = self::getPDO($class::CONNECTION);
-      $PDOSt = $PDO->query('SHOW COLUMNS FROM `'.$class::TABLE.'`;');
+      $PDO = self::getPDO(Quark::getClassConstant($class, 'CONNECTION'));
+      $PDOSt = $PDO->query('SHOW COLUMNS FROM `'.$table.'`;');
       self::$columns_info[$class] = $PDOSt->fetchAll(PDO::FETCH_OBJ);
     }
     return self::$columns_info[$class];
@@ -477,14 +482,18 @@ final class QuarkDBUtils
         // Arreglar el scope del alias
         $alias     = $column->getAlias();
         $class_out = '';
+
         QuarkDBUtils::buildColumnScope($alias, $class, $alias, $class_out);
+        
+        $class_out_table  = Quark::getClassConstant($class_out, 'TABLE');
         $select_columns[] = $column->getExpression()
-          .' AS `'.$class_out::TABLE.'_'.$alias.'`';
+          .' AS `'.$class_out_table.'_'.$alias.'`';
       } else {
         // La columna es un nombre de columna normal
+        $column_class_table = Quark::getClassConstant($column['class'], 'TABLE');
         $select_columns[] = QuarkDBUtils::buildColumnSQL(
           $column['column'], $column['class']
-        ).' AS `'.$column['class']::TABLE.'_'.$column['column'].'`';
+        ).' AS `'.$column_class_table.'_'.$column['column'].'`';
       }
     }
     return implode(',', $select_columns);
@@ -512,7 +521,8 @@ final class QuarkDBUtils
    */
   public static function buildColumnSQL($column, $class)
   {
-    return '`'.$class::TABLE.'`.`'.$column.'`';
+    $table = Quark::getClassConstant($class, 'TABLE');
+    return '`'.$table.'`.`'.$column.'`';
   }
 
   /**

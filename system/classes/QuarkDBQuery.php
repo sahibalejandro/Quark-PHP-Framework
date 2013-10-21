@@ -2,11 +2,15 @@
 /**
  * QuarkPHP Framework
  * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
- * 
- * @link http://quarkphp.com
+ *
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ * @link    http://quarkphp.com
  */
 
+/**
+ * Objeto para realizar consultas a la base de datos
+ */
 final class QuarkDBQuery
 {
   /**
@@ -342,6 +346,9 @@ final class QuarkDBQuery
         break;
     }
 
+    // Obtener el nombre de la tabla B
+    $class_b_table = Quark::getClassConstant($class_b, 'TABLE');
+
     // Asegurarnos que no falta el primary key en la lista de columnas
     if ($columns != null && !$this->results_as_anon_obj) {
       $columns = QuarkDBUtils::addPkColumns($columns, $class_b);
@@ -355,7 +362,7 @@ final class QuarkDBQuery
     if ($condition === null) {
       $conditions = array();
       foreach (QuarkDBUtils::getPrimaryKey($class_b) as $pk) {
-        $conditions[] = $class_b.'.'.$pk.'='.$class_a.'.'.$class_b::TABLE.'_'.$pk;
+        $conditions[] = $class_b.'.'.$pk.'='.$class_a.'.'.$class_b_table.'_'.$pk;
       }
       $condition = implode(' '.self::LOGIC_OP_AND.' ', $conditions);
     }
@@ -376,10 +383,11 @@ final class QuarkDBQuery
     $this->addParams($params);
 
     $this->joins[] = array(
-      'class_a'   => $class_a, // Necesaria para buildResultRow()
-      'class_b'   => $class_b,
-      'condition' => $condition,
-      'type'      => $type,
+      'class_a'       => $class_a, // Necesaria para buildResultRow()
+      'class_b'       => $class_b,
+      'class_b_table' => $class_b_table,
+      'condition'     => $condition,
+      'type'          => $type,
     );
 
     return $this;
@@ -810,7 +818,8 @@ final class QuarkDBQuery
     $class = $this->class;
     try {
       // Preparar y ejecutar la consulta
-      $PDO = QuarkDBUtils::getPDO($class::CONNECTION);
+      $connection = Quark::getClassConstant($class, 'CONNECTION');
+      $PDO = QuarkDBUtils::getPDO($connection);
       $PDOSt = $PDO->prepare($this->getSQL());
       $PDOSt->execute($this->params);
       
@@ -935,6 +944,7 @@ final class QuarkDBQuery
 
     // Copiar nombre de clase para usar paamayim nekudotayim sin error de sintaxis.
     $class = $this->class;
+    $table = Quark::getClassConstant($class, 'TABLE');
 
     switch($this->query_type) {
       case self::QUERY_TYPE_SELECT:
@@ -943,28 +953,28 @@ final class QuarkDBQuery
         // Generar SELECT FROM
         $sql = 'SELECT';
         $sql .= ' '.QuarkDBUtils::buildSelectColumns($this->select_columns, $class);
-        $sql .= ' FROM `'.$class::TABLE.'`';
+        $sql .= ' FROM `'.$table.'`';
 
         // Generar JOIN
         if (count($this->joins) > 0) {
           foreach ($this->joins as $join) {
-            $sql .= ' '.$join['type'].' JOIN `'.$join['class_b']::TABLE
+            $sql .= ' '.$join['type'].' JOIN `'.$join['class_b_table']
               .'` ON ('.$join['condition'].')';
           }
         }
         break;
       case self::QUERY_TYPE_INSERT:
-        $sql = 'INSERT INTO `'.$class::TABLE.'`('
+        $sql = 'INSERT INTO `'.$table.'`('
           .implode(',', $this->insert_columns)
           .')VALUES('.implode(',', $this->insert_placeholders).')';
         break;
       case self::QUERY_TYPE_UPDATE:
-        $sql = 'UPDATE `'.$class::TABLE.'` SET '.implode(',', $this->update_columns);
+        $sql = 'UPDATE `'.$table.'` SET '.implode(',', $this->update_columns);
         break;
       case self::QUERY_TYPE_DELETE:
-        $sql = 'DELETE FROM `'.$class::TABLE.'`';
+        $sql = 'DELETE FROM `'.$table.'`';
         break;
-        $sql = 'SELECT COUNT(*) FROM `'.$class::TABLE.'`';
+        $sql = 'SELECT COUNT(*) FROM `'.$table.'`';
         break;
       default:
         throw new QuarkDBException(
@@ -1021,12 +1031,13 @@ final class QuarkDBQuery
    */
   private function filterColumns($columns, $class)
   {
-    $table_prefix = $class::TABLE.'_';
-    $row = array();
+    $row          = array();
+    $table_prefix = Quark::getClassConstant($class, 'TABLE').'_';
+
     foreach ($columns as $column => $value) {
       // Filtrar las columnas que pertenecen solo a la tabla de $class
       if (strpos($column, $table_prefix) === 0) {
-        $column = substr($column, strlen($table_prefix));
+        $column       = substr($column, strlen($table_prefix));
         $row[$column] = $value;
       }
     }

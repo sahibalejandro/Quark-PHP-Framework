@@ -2,11 +2,15 @@
 /**
  * QuarkPHP Framework
  * Copyright 2012-2013 Sahib Alejandro Jaramillo Leo
- * 
- * @link http://quarkphp.com
+ *
+ * @author Sahib J. Leo <sahib.alejandro@gmail.com>
  * @license GNU General Public License (http://www.gnu.org/licenses/gpl.html)
+ * @link    http://quarkphp.com
  */
 
+/**
+ * Objeto para representar una fila (registro) de una tabla en la base de datos
+ */
 abstract class QuarkDBObject
 {
   /**
@@ -197,10 +201,10 @@ abstract class QuarkDBObject
       $where        = array();
 
       foreach ($primary_key as $pk) {
-        $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+        $where[Quark::getClassConstant($parent_class, 'TABLE').'_'.$pk] = $this->$pk;
       }
       
-      return $class::query()->find($columns)->where($where);
+      return call_user_func(array($class, 'query'))->find($columns)->where($where);
     }
   }
 
@@ -210,14 +214,15 @@ abstract class QuarkDBObject
       return 0;
     } else {
       $parent_class = get_class($this);
+      $table        = Quark::getClassConstant($parent_class, 'TABLE');
       $primary_key  = QuarkDBUtils::getPrimaryKey($parent_class);
       $where        = array();
 
       foreach ($primary_key as $pk) {
-        $where[$parent_class::TABLE.'_'.$pk] = $this->$pk;
+        $where[$table.'_'.$pk] = $this->$pk;
       }
 
-      return $class::query()->count()->where($where);
+      return call_user_func(array($class, 'query'))->count()->where($where);
     }
   }
 
@@ -236,10 +241,11 @@ abstract class QuarkDBObject
      * con esta lista formar los valores del primary key que será utilizado con
      * el método findByPk() */
     $primary_key = QuarkDBUtils::getPrimaryKey($class);
+    $table       = Quark::getClassConstant($class, 'TABLE');
     $parent_pk   = array();
 
     foreach ($primary_key as $pk) {
-      $related_column = $class::TABLE.'_'.$pk;
+      $related_column = $table.'_'.$pk;
       if (property_exists($this, $related_column)) {
         $parent_pk[$pk] = $this->$related_column;
       } else {
@@ -252,7 +258,7 @@ abstract class QuarkDBObject
       }
     }
 
-    return $class::query()->findByPk($parent_pk, $columns);
+    return call_user_func(array($class, 'query'))->findByPk($parent_pk, $columns);
   }
 
   /**
