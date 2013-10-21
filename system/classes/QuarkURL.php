@@ -248,8 +248,7 @@ class QuarkURL
     }
 
     /* Definimos el protocolo para armar la URL completa */
-    $protocol = (strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') !== false
-      ? 'https' : 'http');
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') ? 'https' : 'http';
 
     $base_url = $protocol . '://' . $host . QUARK_APP_DIR
       . (QUARK_APP_DIR == '/' ? '' : '/');

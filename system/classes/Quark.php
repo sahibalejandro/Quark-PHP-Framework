@@ -170,7 +170,6 @@ class Quark
         'system/classes',
         'application/classes',
         'application/dbo',
-        'application/orm', // This is deprecated, and will be removed soon.
         'application/controllers',
         'system/controllers'
       ),
@@ -241,9 +240,7 @@ class Quark
     $controller_name = $QuarkStr->toUpperCamelCase($PathInfo->controller);
     $action_name     = $QuarkStr->toLowerCamelCase($PathInfo->action);
 
-    if (!file_exists(QUARK_APP_PATH . "/controllers/{$controller_name}Controller.php")) {
-      // No existe el controlador solicitado, invocamos a QuarkController
-      // para tener acceso a los metodos __quarkNotFound y __quarkAccessDenied
+    if (!class_exists($controller_name.'Controller')) {
       $controller_name = 'Quark';
     }
 
