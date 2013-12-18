@@ -1,5 +1,5 @@
 <?php
-class QuarkImage_dev
+class QuarkImage
 {
   private $img;
   private $img_type;
@@ -9,7 +9,7 @@ class QuarkImage_dev
   const RETURN_MODE_SAME = 2;
 
   /**
-   * Construye un nuevo objeto, el usuario debería llamar a QuarkImage_dev::loadImage()
+   * Construye un nuevo objeto, el usuario debería llamar a QuarkImage::loadImage()
    * en lugar de este contructor.
    */
   public function __construct($img, $img_type, $return_mode)
@@ -37,7 +37,7 @@ class QuarkImage_dev
    * @param int $width Ancho máximo
    * @param int $height Alto máximo
    * @param bool $stretch Estirar en caso de que la imagen original sea más pequeña
-   * @return QuarkImage_dev
+   * @return QuarkImage
    */
   public function resize($width, $height, $stretch = true)
   {
@@ -62,7 +62,7 @@ class QuarkImage_dev
 
     // Devolver el resultado según el "return mode" establecido.
     if ($this->return_mode == self::RETURN_MODE_NEW) {
-      return new QuarkImage_dev($new_img, $this->img_type, $this->return_mode);
+      return new QuarkImage($new_img, $this->img_type, $this->return_mode);
     } else {
       $this->img = $new_img;
       return $this;
@@ -76,7 +76,7 @@ class QuarkImage_dev
    * @param int $height Alto del corte
    * @param string $x_position Posicion X del corte (left, center, right)
    * @param string $y_position Posicion Y del corte (top, center, bottom)
-   * @return QuarkImage_dev
+   * @return QuarkImage
    */
   public function crop($width, $height, $x_position = 'left', $y_position = 'top')
   {
@@ -122,7 +122,7 @@ class QuarkImage_dev
 
     // Devolver el resultado según el "return mode" establecido.
     if ($this->return_mode == self::RETURN_MODE_NEW) {
-      return new QuarkImage_dev($new_img, $this->img_type, $this->return_mode);
+      return new QuarkImage($new_img, $this->img_type, $this->return_mode);
     } else {
       $this->img = $new_img;
       return $this;
@@ -262,30 +262,30 @@ class QuarkImage_dev
         imagegif($this->img, $file);
         break;
       default:
-        throw new QuarkImageException_dev(
+        throw new QuarkImageException(
           __METHOD__.': Unsupported image type.',
-          QuarkImageException_dev::UNSUPPORTED_IMAGE_TYPE
+          QuarkImageException::UNSUPPORTED_IMAGE_TYPE
         );
         break;
     }
   }
 
   /**
-   * Devuelve una nueva instancia de QuarkImage_dev utilizando la imagen $image_file
+   * Devuelve una nueva instancia de QuarkImage utilizando la imagen $image_file
    * 
    * @param string $image_file Ruta del archivo
-   * @return QuarkImage_dev
+   * @return QuarkImage
    */
-  public static function loadImage($image_file, $return_mode = QuarkImage_dev::RETURN_MODE_NEW)
+  public static function loadImage($image_file, $return_mode = QuarkImage::RETURN_MODE_NEW)
   {
     if (!is_file($image_file)) {
-      throw new QuarkImageException_dev(
+      throw new QuarkImageException(
         __METHOD__.': Image file "'.$image_file.'" not found.',
-        QuarkImageException_dev::IMAGE_FILE_NOT_FOUND
+        QuarkImageException::IMAGE_FILE_NOT_FOUND
       );
     } else {
       $image_size = getimagesize($image_file);
-      return new QuarkImage_dev(
+      return new QuarkImage(
         imagecreatefromstring(file_get_contents($image_file)),
         $image_size[2],
         $return_mode
@@ -297,7 +297,7 @@ class QuarkImage_dev
    * Cambia el formato de imagen
    * 
    * @param int $image_type Tipo de la imagen (cualquier constante IMAGETYPE_XXX de PHP)
-   * @return QuarkImage_dev
+   * @return QuarkImage
    */
   public function convertTo($image_type)
   {
@@ -314,7 +314,7 @@ class QuarkImage_dev
 
     // Devolver el resultado según el "return mode" establecido.
     if ($this->return_mode == self::RETURN_MODE_NEW) {
-      return new QuarkImage_dev($new_img, $image_type, $this->return_mode);
+      return new QuarkImage($new_img, $image_type, $this->return_mode);
     } else {
       $this->img_type = $image_type;
       $this->img      = $new_img;

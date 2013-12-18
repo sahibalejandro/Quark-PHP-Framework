@@ -9,7 +9,7 @@ Options -Indexes
 # Try to enable friendly URL autmatically
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteCond $1 !^(application/public|system/public)
+  RewriteCond $1 !^(index\.php|application/public|system/public)
   RewriteRule ^(.*)$ index.php?quark_path_info=$1&%{QUERY_STRING}
 </IfModule>
 

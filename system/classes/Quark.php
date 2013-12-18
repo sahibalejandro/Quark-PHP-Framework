@@ -58,7 +58,7 @@ class Quark
    * 
    * @var string
    */
-  const VERSION = '3.6.8';
+  const VERSION = '3.6.9';
 
   /**
    * Inicia el proceso del framework.
